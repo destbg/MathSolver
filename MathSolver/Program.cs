@@ -1,7 +1,5 @@
 ﻿using MathSolver;
 
-MathParser exp = new("5 * 5 + 5%");
+MathExpression math = MathParser.Parse("5^x%");
 
-MathExpression math = exp.Parse();
-
-Console.WriteLine(math.Solve(new MathVariable[0]));
+Console.WriteLine(math.Solve(new MathVariable[] { new MathVariable('x', 5d) }));

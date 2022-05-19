@@ -2,10 +2,7 @@
 {
     public class InvalidExpressionException : Exception
     {
-        public InvalidExpressionException(string equation)
-            : base($"The provided equation {equation} was not valid.")
-        {
-
-        }
+        public InvalidExpressionException(string message)
+            : base(message) { }
     }
 }

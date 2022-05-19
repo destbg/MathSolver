@@ -2,20 +2,6 @@
 {
     public static class MathHelpers
     {
-        public static double CalculateSymbol(double leftNum, MathSymbol symbol, double rightNum)
-        {
-            return symbol switch
-            {
-                MathSymbol.Addition => leftNum + rightNum,
-                MathSymbol.Subraction => leftNum - rightNum,
-                MathSymbol.Multiplication => leftNum * rightNum,
-                MathSymbol.Division => leftNum / rightNum,
-                MathSymbol.Power => Math.Pow(leftNum, rightNum),
-                MathSymbol.Factorial => Factorial(leftNum),
-                _ => throw new ArgumentException($"The provided symbol {symbol} was not valid."),
-            };
-        }
-
         public static double CalculateCoefficient(string? coefficient, double num)
         {
             if (coefficient == null)
@@ -39,7 +25,7 @@
                     return Math.Log(num, logBase);
                 }
 
-                throw new ArgumentException($"The provided coefficient {coefficient} was not valid.");
+                throw new InvalidExpressionException($"The provided coefficient {coefficient} was not valid.");
             }
 
             if (coefficient.StartsWith("sqrt"))
@@ -54,7 +40,7 @@
                     return Math.Pow(num, 1 / nthRoot);
                 }
 
-                throw new ArgumentException($"The provided coefficient {coefficient} was not valid.");
+                throw new InvalidExpressionException($"The provided coefficient {coefficient} was not valid.");
             }
 
             return coefficient switch
@@ -78,7 +64,7 @@
                 "tan" => Math.Tan(num),
                 "tanh" => Math.Tanh(num),
                 "trunc" => Math.Truncate(num),
-                _ => throw new ArgumentException($"The provided coefficient {coefficient} was not valid."),
+                _ => throw new InvalidExpressionException($"The provided coefficient {coefficient} was not valid."),
             };
         }
 
