@@ -20,44 +20,39 @@ namespace MathSolver
         {
             while (index < equation.Length)
             {
-                CheckNextLetter();
+                char letter = equation[index];
+
+                if (char.IsNumber(letter))
+                {
+                    FoundNumber(letter);
+                }
+                else if (MathHelpers.IsMathSymbol(letter))
+                {
+                    FoundMathSymbol(letter);
+                }
+                else if (letter == '%')
+                {
+                    FoundPercentage();
+                }
+                else if (char.IsLetter(letter))
+                {
+                    FoundVariableOrCoefficient(letter);
+                }
+                else if (letter == '(')
+                {
+                    FoundBracket();
+                }
+                else if (letter == ' ')
+                {
+                    index++;
+                }
+                else
+                {
+                    throw new InvalidExpressionException($"The provided letter {letter} was not valid.");
+                }
             }
 
             return expressions;
-        }
-
-        private void CheckNextLetter()
-        {
-            char letter = equation[index];
-
-            if (char.IsNumber(letter))
-            {
-                FoundNumber(letter);
-            }
-            else if (MathHelpers.IsMathSymbol(letter))
-            {
-                FoundMathSymbol(letter);
-            }
-            else if (letter == '%')
-            {
-                FoundPercentage();
-            }
-            else if (char.IsLetter(letter))
-            {
-                FoundVariableOrCoefficient(letter);
-            }
-            else if (letter == '(')
-            {
-                FoundBracket();
-            }
-            else if (letter == ' ')
-            {
-                index++;
-            }
-            else
-            {
-                throw new InvalidExpressionException($"The provided letter {letter} was not valid.");
-            }
         }
 
         private void FoundNumber(char letter)
