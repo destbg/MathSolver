@@ -201,6 +201,11 @@ namespace MathSolver
 
             string expressionRange = equation[(startIndex + 1)..index];
 
+            if (expressions.Count > 0 && expressions[^1].Type != ExpressionType.Symbol)
+            {
+                expressions.Add(new SimpleExpression(MathSymbol.Multiplication));
+            }
+
             expressions.Add(new SimpleExpression(coefficient, expressionRange));
             index++;
         }
