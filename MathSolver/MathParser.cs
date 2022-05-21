@@ -1,4 +1,6 @@
-﻿using MathSolver.Enums;
+﻿using System.Linq.Expressions;
+using MathSolver.Converters;
+using MathSolver.Enums;
 using MathSolver.Expressions;
 using MathSolver.Models;
 
@@ -51,13 +53,20 @@ namespace MathSolver
             }
         }
 
+        public static (Expression Expression, List<ParameterExpression> Parameters) ConvertToCSharpExpression(MathExpression mathExpression)
+        {
+            MathExpressionToExpressionConverter mathExpressionToExpressionConverter = new(mathExpression);
+
+            return (mathExpressionToExpressionConverter.Convert(), mathExpressionToExpressionConverter.Parameters);
+        }
+
         internal static MathExpression Parse(string equation, string? coefficient, bool isPercent, bool isFactorial)
         {
-            MathEquationParser parser = new(equation);
+            TextToEquationConverter parser = new(equation);
 
-            List<EquationPart> expressions = parser.Parse();
+            List<EquationPart> expressions = parser.Convert();
 
-            EquationToExpressionConveter converter = new(equation, expressions, coefficient, isPercent, isFactorial);
+            EquationToMathExpressionConveter converter = new(equation, expressions, coefficient, isPercent, isFactorial);
 
             return converter.Convert();
         }

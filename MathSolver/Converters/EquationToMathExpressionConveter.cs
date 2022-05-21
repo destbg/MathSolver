@@ -3,9 +3,9 @@ using MathSolver.Exceptions;
 using MathSolver.Expressions;
 using MathSolver.Models;
 
-namespace MathSolver
+namespace MathSolver.Converters
 {
-    internal class EquationToExpressionConveter
+    internal class EquationToMathExpressionConveter
     {
         private readonly string equation;
         private readonly string? coefficient;
@@ -13,7 +13,7 @@ namespace MathSolver
         private readonly bool isFactorial;
         private readonly List<EquationPart> expressions;
 
-        public EquationToExpressionConveter(string equation, List<EquationPart> expressions, string? coefficient, bool isPercent, bool isFactorial)
+        public EquationToMathExpressionConveter(string equation, List<EquationPart> expressions, string? coefficient, bool isPercent, bool isFactorial)
         {
             this.equation = equation;
             this.expressions = expressions;

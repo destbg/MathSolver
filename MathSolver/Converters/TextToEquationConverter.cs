@@ -3,23 +3,23 @@ using MathSolver.Enums;
 using MathSolver.Exceptions;
 using MathSolver.Models;
 
-namespace MathSolver
+namespace MathSolver.Converters
 {
-    internal class MathEquationParser
+    internal class TextToEquationConverter
     {
         private readonly string equation;
         private readonly List<EquationPart> expressions;
 
         private int index;
 
-        public MathEquationParser(string equation)
+        public TextToEquationConverter(string equation)
         {
             this.equation = equation.ToLower().TrimEnd(' ') + " ";
             expressions = new List<EquationPart>();
             index = 0;
         }
 
-        public List<EquationPart> Parse()
+        public List<EquationPart> Convert()
         {
             while (index < equation.Length)
             {

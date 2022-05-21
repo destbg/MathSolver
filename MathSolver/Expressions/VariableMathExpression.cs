@@ -23,7 +23,7 @@ namespace MathSolver.Expressions
             {
                 if (variable.Variable == Variable)
                 {
-                    return MathHelper.CalculateNumberSuffix(variable.Number, this);
+                    return MathHelper.CalculateNumberSuffix(variable.Number, IsPercent, IsFactorial);
                 }
             }
 

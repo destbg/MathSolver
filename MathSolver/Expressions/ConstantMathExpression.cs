@@ -18,7 +18,7 @@ namespace MathSolver.Expressions
 
         public override double Solve(params MathVariable[] variables)
         {
-            return MathHelper.CalculateNumberSuffix(Number, this);
+            return MathHelper.CalculateNumberSuffix(Number, IsPercent, IsFactorial);
         }
 
         public override string ToString()
