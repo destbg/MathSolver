@@ -6,7 +6,6 @@
         Subraction,
         Multiplication,
         Division,
-        Power,
-        Factorial
+        Power
     }
 }

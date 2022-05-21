@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using MathSolver.Enums;
+﻿using MathSolver.Enums;
 using MathSolver.Exceptions;
 using MathSolver.Helpers;
 using MathSolver.Models;
@@ -8,83 +7,64 @@ namespace MathSolver.Expressions
 {
     public class UnaryMathExpression : MathExpression
     {
-        private readonly MathExpression leftOperand;
-        private readonly MathExpression rightOperand;
-        private readonly MathSymbol symbol;
-
         public UnaryMathExpression(MathExpression leftOperand, MathExpression rightOperand, MathSymbol symbol)
+            : base(MathExpressionType.Unary)
         {
-            this.leftOperand = leftOperand;
-            this.rightOperand = rightOperand;
-            this.symbol = symbol;
+            LeftOperand = leftOperand;
+            RightOperand = rightOperand;
+            Symbol = symbol;
         }
 
-        public override double Solve(MathVariable[] variables)
-        {
-            double leftNumber = leftOperand.Solve(variables);
-            double rightNumber = rightOperand.Solve(variables);
+        public MathExpression LeftOperand { get; }
+        public MathExpression RightOperand { get; }
+        public MathSymbol Symbol { get; }
 
-            if (leftOperand.IsPercent || rightOperand.IsPercent)
+        public override double Solve(params MathVariable[] variables)
+        {
+            double leftNumber = LeftOperand.Solve(variables);
+            double rightNumber = RightOperand.Solve(variables);
+
+            if (LeftOperand.IsPercent || RightOperand.IsPercent)
             {
-                if (leftOperand.IsPercent && rightOperand.IsPercent)
+                if (LeftOperand.IsPercent && RightOperand.IsPercent)
                 {
-                    leftNumber /= 100;
-                    rightNumber = CalculatePercentage(leftNumber, rightNumber, symbol);
+                    rightNumber = CalculatePercentage(leftNumber, rightNumber, Symbol);
                 }
-                else if (leftOperand.IsPercent)
+                else if (LeftOperand.IsPercent)
                 {
-                    leftNumber = CalculatePercentage(rightNumber, leftNumber, symbol);
+                    leftNumber = CalculatePercentage(rightNumber, leftNumber, Symbol);
                 }
                 else
                 {
-                    rightNumber = CalculatePercentage(leftNumber, rightNumber, symbol);
+                    rightNumber = CalculatePercentage(leftNumber, rightNumber, Symbol);
                 }
             }
 
-            return symbol switch
+            double result = Symbol switch
             {
                 MathSymbol.Addition => leftNumber + rightNumber,
                 MathSymbol.Subraction => leftNumber - rightNumber,
                 MathSymbol.Multiplication => leftNumber * rightNumber,
                 MathSymbol.Division => leftNumber / rightNumber,
                 MathSymbol.Power => Math.Pow(leftNumber, rightNumber),
-                MathSymbol.Factorial => Factorial((long)Math.Round(leftNumber)),
-                _ => throw new InvalidExpressionException($"The provided symbol {symbol} was not valid."),
+                _ => throw new InvalidExpressionException($"The provided symbol {Symbol} was not valid."),
             };
+
+            return MathHelper.CalculateNumberSuffix(result, this);
         }
 
         public override string ToString()
         {
-            return $"{Coefficient ?? string.Empty}({leftOperand} {MathHelper.SymbolEnumToChar(symbol)} {rightOperand})";
+            return ToStringHelper.ExpressionSuffix($"({LeftOperand} {ToStringHelper.SymbolEnumToChar(Symbol)} {RightOperand})", this, false);
         }
 
         private static double CalculatePercentage(double num, double percent, MathSymbol symbol)
         {
             return symbol switch
             {
-                MathSymbol.Addition or MathSymbol.Subraction => num / 100 * percent,
-                MathSymbol.Multiplication or MathSymbol.Division or MathSymbol.Power => percent / 100,
-                _ => throw new InvalidExpressionException($"The provided symbol {symbol} was not valid."),
+                MathSymbol.Addition or MathSymbol.Subraction => num * percent,
+                _ => percent,
             };
-        }
-
-        private static double Factorial(long num)
-        {
-            BigInteger sum = num;
-            BigInteger result = num;
-
-            for (long i = num - 2; i > 1; i -= 2)
-            {
-                sum += i;
-                result *= sum;
-            }
-
-            if (num % 2 != 0)
-            {
-                result *= num / 2 + 1;
-            }
-
-            return (double)result;
         }
     }
 }

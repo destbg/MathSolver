@@ -1,4 +1,5 @@
-﻿using MathSolver.Expressions;
+﻿using MathSolver.Enums;
+using MathSolver.Expressions;
 using MathSolver.Models;
 
 namespace MathSolver
@@ -7,16 +8,58 @@ namespace MathSolver
     {
         public static MathExpression Parse(string equation)
         {
-            return Parse(equation, null, false);
+            return Parse(equation, null, false, false);
         }
 
-        internal static MathExpression Parse(string equation, string? coefficient, bool isPercent)
+        public static MathExpression Simplify(MathExpression expression)
+        {
+            switch (expression.Type)
+            {
+                case MathExpressionType.Variable:
+                {
+                    return expression;
+                }
+                case MathExpressionType.Constant:
+                {
+                    return expression.IsPercent
+                        ? expression
+                        : new ConstantMathExpression(expression.Solve(), false, false);
+                }
+                case MathExpressionType.Unary:
+                {
+                    UnaryMathExpression unaryExpression = (UnaryMathExpression)expression;
+
+                    MathExpression leftOperand = Simplify(unaryExpression.LeftOperand);
+                    MathExpression rightOperand = Simplify(unaryExpression.RightOperand);
+
+                    UnaryMathExpression newExpression = new(leftOperand, rightOperand, unaryExpression.Symbol)
+                    {
+                        Coefficient = unaryExpression.Coefficient,
+                        IsFactorial = unaryExpression.IsFactorial,
+                        IsPercent = unaryExpression.IsPercent
+                    };
+
+                    if (leftOperand.Type == MathExpressionType.Constant && rightOperand.Type == MathExpressionType.Constant)
+                    {
+                        return new ConstantMathExpression(newExpression.Solve(), false, false);
+                    }
+                    else
+                    {
+                        return newExpression;
+                    }
+                }
+                default:
+                    throw new Exception($"Internal Exception: The {nameof(Simplify)} method did not have a {nameof(MathExpressionType)} implemented.");
+            }
+        }
+
+        internal static MathExpression Parse(string equation, string? coefficient, bool isPercent, bool isFactorial)
         {
             MathEquationParser parser = new(equation);
 
             List<EquationPart> expressions = parser.Parse();
 
-            EquationToExpressionConveter converter = new(equation, expressions, coefficient, isPercent);
+            EquationToExpressionConveter converter = new(equation, expressions, coefficient, isPercent, isFactorial);
 
             return converter.Convert();
         }

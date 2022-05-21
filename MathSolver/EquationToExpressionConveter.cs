@@ -10,14 +10,16 @@ namespace MathSolver
         private readonly string equation;
         private readonly string? coefficient;
         private readonly bool isPercent;
+        private readonly bool isFactorial;
         private readonly List<EquationPart> expressions;
 
-        public EquationToExpressionConveter(string equation, List<EquationPart> expressions, string? coefficient, bool isPercent)
+        public EquationToExpressionConveter(string equation, List<EquationPart> expressions, string? coefficient, bool isPercent, bool isFactorial)
         {
             this.equation = equation;
             this.expressions = expressions;
             this.coefficient = coefficient;
             this.isPercent = isPercent;
+            this.isFactorial = isFactorial;
         }
 
         public MathExpression Convert()
@@ -49,8 +51,9 @@ namespace MathSolver
 
             ExpressionEquationPart expression = (ExpressionEquationPart)expressions[0];
 
-            expression.MathExpression!.Coefficient = coefficient;
-            expression.MathExpression!.IsPercent = isPercent;
+            expression.MathExpression.Coefficient = coefficient;
+            expression.MathExpression.IsPercent = isPercent;
+            expression.MathExpression.IsFactorial = isFactorial;
 
             return expression.MathExpression!;
         }
@@ -91,7 +94,7 @@ namespace MathSolver
             {
                 MathSymbol symbol = ((SymbolEquationPart)expression).Symbol;
 
-                if (symbol is MathSymbol.Addition or MathSymbol.Subraction or MathSymbol.Factorial)
+                if (symbol is MathSymbol.Addition or MathSymbol.Subraction)
                 {
                     expressions.Insert(indexToInsert, new ConstantEquationPart(0d));
                 }
@@ -147,7 +150,7 @@ namespace MathSolver
             {
                 SubEquationPart subEquation = (SubEquationPart)expression;
 
-                MathExpression mathExpression = MathParser.Parse(subEquation.Expression!, subEquation.Coefficient, subEquation.IsPercent);
+                MathExpression mathExpression = MathParser.Parse(subEquation.Expression, subEquation.Coefficient, subEquation.IsPercent, subEquation.IsFactorial);
 
                 return mathExpression;
             }
@@ -155,13 +158,13 @@ namespace MathSolver
             {
                 VariableEquationPart variableEquation = (VariableEquationPart)expression;
 
-                return new VariableMathExpression(variableEquation.Variable, variableEquation.IsPercent);
+                return new VariableMathExpression(variableEquation.Variable, variableEquation.IsPercent, variableEquation.IsFactorial);
             }
             else if (expression.Type == EquationType.Number)
             {
-                ConstantEquationPart? constantEquation = (ConstantEquationPart)expression;
+                ConstantEquationPart constantEquation = (ConstantEquationPart)expression;
 
-                return new ConstantMathExpression(constantEquation.Number, constantEquation.IsPercent);
+                return new ConstantMathExpression(constantEquation.Number, constantEquation.IsPercent, constantEquation.IsFactorial);
             }
             else if (expression.Type == EquationType.MathExpression)
             {

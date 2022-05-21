@@ -29,9 +29,13 @@ namespace MathSolver
                 {
                     FoundNumber(letter);
                 }
-                else if (letter is '+' or '-' or '*' or '/' or '^' or '!' or '.')
+                else if (letter is '+' or '-' or '*' or '/' or '^' or '.')
                 {
                     FoundMathSymbol(letter);
+                }
+                else if (letter == '!')
+                {
+                    FoundFactorial();
                 }
                 else if (letter == '%')
                 {
@@ -95,22 +99,29 @@ namespace MathSolver
                 '.' => MathSymbol.Multiplication,
                 '/' => MathSymbol.Division,
                 '^' => MathSymbol.Power,
-                '!' => MathSymbol.Factorial,
                 _ => throw new InvalidExpressionException($"The provided math symbol {letter} was not valid."),
             };
 
             expressions.Add(new SymbolEquationPart(symbol));
 
-            if (symbol == MathSymbol.Factorial)
-            {
-                // Check if the last number is percent or a symbol as well
-                if (expressions.Count == 1 || expressions[^2].Type == EquationType.Symbol || expressions[^2].IsPercent)
-                {
-                    throw new InvalidExpressionException($"The provided equation {equation} was not valid.");
-                }
+            index++;
+        }
 
-                expressions.Add(new ConstantEquationPart(0d));
+        private void FoundFactorial()
+        {
+            if (expressions.Count < 1)
+            {
+                throw new InvalidExpressionException($"The provided equation {equation} was not valid.");
             }
+
+            EquationPart lastExpression = expressions[^1];
+
+            if (lastExpression.Type == EquationType.Symbol || lastExpression.IsPercent)
+            {
+                throw new InvalidExpressionException($"The provided equation {equation} was not valid.");
+            }
+
+            lastExpression.IsFactorial = true;
 
             index++;
         }
@@ -124,7 +135,7 @@ namespace MathSolver
 
             EquationPart lastExpression = expressions[^1];
 
-            if (IsInvalidPercent(lastExpression))
+            if (lastExpression.Type == EquationType.Symbol || lastExpression.IsPercent)
             {
                 throw new InvalidExpressionException($"The provided equation {equation} was not valid.");
             }
@@ -138,7 +149,7 @@ namespace MathSolver
         {
             int startIndex = index;
 
-            while (char.IsLetter(letter) || char.IsNumber(letter)) // Checking for number because of log10
+            while (char.IsLetter(letter) || char.IsNumber(letter)) // Checking for number because of log{num} and sqrt{num}
             {
                 letter = equation[++index];
             }
@@ -226,24 +237,6 @@ namespace MathSolver
             }
 
             return false;
-        }
-
-        private bool IsInvalidPercent(EquationPart lastExpression)
-        {
-            if (expressions.Count > 1)
-            {
-                // Third check is when the number is factorial, in which case it's the same as checking if it's EquationType.Symbol
-                return lastExpression.Type == EquationType.Symbol
-                    || lastExpression.IsPercent
-                    || expressions.Count > 1
-                        && expressions[^2].Type == EquationType.Symbol
-                        && ((SymbolEquationPart)expressions[^2]).Symbol == MathSymbol.Factorial;
-            }
-            else
-            {
-                return lastExpression.Type == EquationType.Symbol
-                    || lastExpression.IsPercent;
-            }
         }
 
         private static bool IsValidCoefficient(string coefficient)

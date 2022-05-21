@@ -12,6 +12,6 @@ namespace MathSolver.Models
         }
 
         public string? Coefficient { get; }
-        public string? Expression { get; }
+        public string Expression { get; }
     }
 }

@@ -1,28 +1,29 @@
-﻿using MathSolver.Helpers;
+﻿using MathSolver.Enums;
+using MathSolver.Helpers;
 using MathSolver.Models;
 
 namespace MathSolver.Expressions
 {
     public class ConstantMathExpression : MathExpression
     {
-        private readonly double number;
-
-        public ConstantMathExpression(double number, bool isPercent)
+        public ConstantMathExpression(double number, bool isPercent, bool isFactorial)
+            : base(MathExpressionType.Constant)
         {
-            this.number = number;
+            Number = number;
             IsPercent = isPercent;
+            IsFactorial = isFactorial;
         }
 
-        public override double Solve(MathVariable[] variables)
+        public double Number { get; }
+
+        public override double Solve(params MathVariable[] variables)
         {
-            return !string.IsNullOrEmpty(Coefficient) ?
-                MathHelper.CalculateCoefficient(Coefficient, number)
-                : number;
+            return MathHelper.CalculateNumberSuffix(Number, this);
         }
 
         public override string ToString()
         {
-            return number.ToString();
+            return ToStringHelper.ExpressionSuffix(Number.ToString(), this);
         }
     }
 }

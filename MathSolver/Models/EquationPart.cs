@@ -12,5 +12,6 @@ namespace MathSolver.Models
         public EquationType Type { get; }
 
         public bool IsPercent { get; set; }
+        public bool IsFactorial { get; set; }
     }
 }

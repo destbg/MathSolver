@@ -2,10 +2,8 @@
 using MathSolver.Expressions;
 using MathSolver.Models;
 
-MathExpression math = MathParser.Parse("15 / 5!");
+MathExpression math = MathParser.Parse("10% + (x + 5!)");
 
-Console.WriteLine(math.Solve(new MathVariable[]
-{
-    new MathVariable('x', 5d),
-    new MathVariable('y', 1000d)
-}));
+var simplified = MathParser.Simplify(math);
+
+Console.WriteLine(simplified.Solve(new MathVariable('x', 5d), new MathVariable('y', 1000d)));

@@ -1,25 +1,51 @@
-﻿using MathSolver.Enums;
+﻿using System.Numerics;
 using MathSolver.Exceptions;
+using MathSolver.Expressions;
 
 namespace MathSolver.Helpers
 {
     internal static class MathHelper
     {
-        public static char SymbolEnumToChar(MathSymbol symbol)
+        public static double CalculateNumberSuffix(double number, MathExpression expression)
         {
-            return symbol switch
+            if (expression.IsFactorial)
             {
-                MathSymbol.Addition => '+',
-                MathSymbol.Subraction => '-',
-                MathSymbol.Multiplication => '*',
-                MathSymbol.Division => '/',
-                MathSymbol.Power => '^',
-                MathSymbol.Factorial => '!',
-                _ => '?',
-            };
+                number = Factorial((long)Math.Round(number));
+            }
+
+            if (expression.IsPercent)
+            {
+                number /= 100;
+            }
+
+            if (!string.IsNullOrEmpty(expression.Coefficient))
+            {
+                number = CalculateCoefficient(expression.Coefficient, number);
+            }
+
+            return number;
         }
 
-        public static double CalculateCoefficient(string coefficient, double num)
+        private static double Factorial(long num)
+        {
+            BigInteger sum = num;
+            BigInteger result = num;
+
+            for (long i = num - 2; i > 1; i -= 2)
+            {
+                sum += i;
+                result *= sum;
+            }
+
+            if (num % 2 != 0)
+            {
+                result *= num / 2 + 1;
+            }
+
+            return (double)result;
+        }
+
+        private static double CalculateCoefficient(string coefficient, double num)
         {
             if (coefficient.StartsWith("log"))
             {
