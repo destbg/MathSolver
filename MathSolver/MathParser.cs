@@ -1,4 +1,7 @@
-﻿namespace MathSolver
+﻿using MathSolver.Expressions;
+using MathSolver.Models;
+
+namespace MathSolver
 {
     public static class MathParser
     {
@@ -9,13 +12,13 @@
 
         internal static MathExpression Parse(string equation, string? coefficient, bool isPercent)
         {
-            MathExpressionParser expressionParser = new(equation);
+            MathEquationParser parser = new(equation);
 
-            List<SimpleExpression> expressions = expressionParser.Parse();
+            List<EquationPart> expressions = parser.Parse();
 
-            MathExpressionSimplifier simplifier = new(equation, expressions, coefficient, isPercent);
+            EquationToExpressionConveter converter = new(equation, expressions, coefficient, isPercent);
 
-            return simplifier.Simplify();
+            return converter.Convert();
         }
     }
 }

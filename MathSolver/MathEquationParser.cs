@@ -1,22 +1,25 @@
 ﻿using System.Globalization;
+using MathSolver.Enums;
+using MathSolver.Exceptions;
+using MathSolver.Models;
 
 namespace MathSolver
 {
-    public class MathExpressionParser
+    internal class MathEquationParser
     {
         private readonly string equation;
-        private readonly List<SimpleExpression> expressions;
+        private readonly List<EquationPart> expressions;
 
         private int index;
 
-        public MathExpressionParser(string equation)
+        public MathEquationParser(string equation)
         {
             this.equation = equation.ToLower().TrimEnd(' ') + " ";
-            expressions = new List<SimpleExpression>();
+            expressions = new List<EquationPart>();
             index = 0;
         }
 
-        public List<SimpleExpression> Parse()
+        public List<EquationPart> Parse()
         {
             while (index < equation.Length)
             {
@@ -26,7 +29,7 @@ namespace MathSolver
                 {
                     FoundNumber(letter);
                 }
-                else if (MathHelpers.IsMathSymbol(letter))
+                else if (letter is '+' or '-' or '*' or '/' or '^' or '!' or '.')
                 {
                     FoundMathSymbol(letter);
                 }
@@ -74,7 +77,7 @@ namespace MathSolver
 
             if (double.TryParse(numberRange, NumberStyles.Float, CultureInfo.InvariantCulture, out double number))
             {
-                expressions.Add(new SimpleExpression(number));
+                expressions.Add(new ConstantEquationPart(number));
             }
             else
             {
@@ -96,17 +99,17 @@ namespace MathSolver
                 _ => throw new InvalidExpressionException($"The provided math symbol {letter} was not valid."),
             };
 
-            expressions.Add(new SimpleExpression(symbol));
+            expressions.Add(new SymbolEquationPart(symbol));
 
             if (symbol == MathSymbol.Factorial)
             {
                 // Check if the last number is percent or a symbol as well
-                if (expressions.Count == 0 || expressions[^1].Type == ExpressionType.Symbol || expressions[^1].IsPercent)
+                if (expressions.Count == 1 || expressions[^2].Type == EquationType.Symbol || expressions[^2].IsPercent)
                 {
                     throw new InvalidExpressionException($"The provided equation {equation} was not valid.");
                 }
 
-                expressions.Add(new SimpleExpression(0d));
+                expressions.Add(new ConstantEquationPart(0d));
             }
 
             index++;
@@ -119,7 +122,7 @@ namespace MathSolver
                 throw new InvalidExpressionException($"The provided equation {equation} was not valid.");
             }
 
-            SimpleExpression lastExpression = expressions[^1];
+            EquationPart lastExpression = expressions[^1];
 
             if (IsInvalidPercent(lastExpression))
             {
@@ -146,11 +149,11 @@ namespace MathSolver
 
                 if (variable == 'e')
                 {
-                    expressions.Add(new SimpleExpression(Math.E));
+                    expressions.Add(new ConstantEquationPart(Math.E));
                 }
                 else
                 {
-                    expressions.Add(new SimpleExpression(variable));
+                    expressions.Add(new VariableEquationPart(variable));
                 }
             }
             else
@@ -159,17 +162,17 @@ namespace MathSolver
 
                 if (coefficientRange == "pi")
                 {
-                    expressions.Add(new SimpleExpression(Math.PI));
+                    expressions.Add(new ConstantEquationPart(Math.PI));
                 }
                 else if (coefficientRange == "tau")
                 {
-                    expressions.Add(new SimpleExpression(Math.Tau));
+                    expressions.Add(new ConstantEquationPart(Math.Tau));
                 }
                 else if (!HasBracket())
                 {
                     throw new InvalidExpressionException($"The provided coefficient {coefficientRange} was not followed by a bracket.");
                 }
-                else if (!MathHelpers.IsValidCoefficient(coefficientRange))
+                else if (!IsValidCoefficient(coefficientRange))
                 {
                     throw new InvalidExpressionException($"The provided coefficient {coefficientRange} was not valid.");
                 }
@@ -201,12 +204,12 @@ namespace MathSolver
 
             string expressionRange = equation[(startIndex + 1)..index];
 
-            if (expressions.Count > 0 && expressions[^1].Type != ExpressionType.Symbol)
+            if (expressions.Count > 0 && expressions[^1].Type != EquationType.Symbol)
             {
-                expressions.Add(new SimpleExpression(MathSymbol.Multiplication));
+                expressions.Add(new SymbolEquationPart(MathSymbol.Multiplication));
             }
 
-            expressions.Add(new SimpleExpression(coefficient, expressionRange));
+            expressions.Add(new SubEquationPart(coefficient, expressionRange));
             index++;
         }
 
@@ -225,22 +228,60 @@ namespace MathSolver
             return false;
         }
 
-        private bool IsInvalidPercent(SimpleExpression lastExpression)
+        private bool IsInvalidPercent(EquationPart lastExpression)
         {
             if (expressions.Count > 1)
             {
-                // Third check is when the number is factorial, in which case it's the same as checking if it's ExpressionType.Symbol
-                return lastExpression.Type == ExpressionType.Symbol
+                // Third check is when the number is factorial, in which case it's the same as checking if it's EquationType.Symbol
+                return lastExpression.Type == EquationType.Symbol
                     || lastExpression.IsPercent
-                    || (expressions.Count > 1
-                        && expressions[^2].Type == ExpressionType.Symbol
-                        && expressions[^2].Symbol == MathSymbol.Factorial);
+                    || expressions.Count > 1
+                        && expressions[^2].Type == EquationType.Symbol
+                        && ((SymbolEquationPart)expressions[^2]).Symbol == MathSymbol.Factorial;
             }
             else
             {
-                return lastExpression.Type == ExpressionType.Symbol
+                return lastExpression.Type == EquationType.Symbol
                     || lastExpression.IsPercent;
             }
+        }
+
+        private static bool IsValidCoefficient(string coefficient)
+        {
+            if (coefficient.StartsWith("log"))
+            {
+                return int.TryParse(coefficient.Replace("log", string.Empty), out _);
+            }
+
+            if (coefficient.StartsWith("sqrt"))
+            {
+                return coefficient == "sqrt"
+                    || int.TryParse(coefficient.Replace("sqrt", string.Empty), out _);
+            }
+
+            return coefficient switch
+            {
+                "abs" => true,
+                "acos" => true,
+                "acosh" => true,
+                "asin" => true,
+                "asinh" => true,
+                "atan" => true,
+                "atanh" => true,
+                "cbrt" => true,
+                "ceil" => true,
+                "cos" => true,
+                "cosh" => true,
+                "floor" => true,
+                "round" => true,
+                "sign" => true,
+                "sin" => true,
+                "sinh" => true,
+                "tan" => true,
+                "tanh" => true,
+                "trunc" => true,
+                _ => false,
+            };
         }
     }
 }

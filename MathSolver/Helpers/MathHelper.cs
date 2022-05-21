@@ -1,14 +1,26 @@
-﻿namespace MathSolver
-{
-    public static class MathHelpers
-    {
-        public static double CalculateCoefficient(string? coefficient, double num)
-        {
-            if (coefficient == null)
-            {
-                return num;
-            }
+﻿using MathSolver.Enums;
+using MathSolver.Exceptions;
 
+namespace MathSolver.Helpers
+{
+    internal static class MathHelper
+    {
+        public static char SymbolEnumToChar(MathSymbol symbol)
+        {
+            return symbol switch
+            {
+                MathSymbol.Addition => '+',
+                MathSymbol.Subraction => '-',
+                MathSymbol.Multiplication => '*',
+                MathSymbol.Division => '/',
+                MathSymbol.Power => '^',
+                MathSymbol.Factorial => '!',
+                _ => '?',
+            };
+        }
+
+        public static double CalculateCoefficient(string coefficient, double num)
+        {
             if (coefficient.StartsWith("log"))
             {
                 if (coefficient == "log2")
@@ -65,76 +77,6 @@
                 "tanh" => Math.Tanh(num),
                 "trunc" => Math.Truncate(num),
                 _ => throw new InvalidExpressionException($"The provided coefficient {coefficient} was not valid."),
-            };
-        }
-
-        public static double Factorial(double num)
-        {
-            double result = 1;
-
-            while (num != 1)
-            {
-                result *= num;
-                num--;
-            }
-
-            return result;
-        }
-
-        public static bool IsMathSymbol(char c)
-        {
-            return c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '!' || c == '.';
-        }
-
-        public static bool IsValidCoefficient(string coefficient)
-        {
-            if (coefficient.StartsWith("log"))
-            {
-                if (int.TryParse(coefficient.Replace("log", string.Empty), out _))
-                {
-                    return true;
-                }
-
-                return false;
-            }
-
-            if (coefficient.StartsWith("sqrt"))
-            {
-                if (coefficient == "sqrt")
-                {
-                    return true;
-                }
-
-                if (int.TryParse(coefficient.Replace("sqrt", string.Empty), out _))
-                {
-                    return true;
-                }
-
-                return false;
-            }
-
-            return coefficient switch
-            {
-                "abs" => true,
-                "acos" => true,
-                "acosh" => true,
-                "asin" => true,
-                "asinh" => true,
-                "atan" => true,
-                "atanh" => true,
-                "cbrt" => true,
-                "ceil" => true,
-                "cos" => true,
-                "cosh" => true,
-                "floor" => true,
-                "round" => true,
-                "sign" => true,
-                "sin" => true,
-                "sinh" => true,
-                "tan" => true,
-                "tanh" => true,
-                "trunc" => true,
-                _ => false,
             };
         }
     }

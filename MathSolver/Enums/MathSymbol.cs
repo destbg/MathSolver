@@ -1,4 +1,4 @@
-﻿namespace MathSolver
+﻿namespace MathSolver.Enums
 {
     public enum MathSymbol
     {

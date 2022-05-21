@@ -1,4 +1,4 @@
-﻿namespace MathSolver
+﻿namespace MathSolver.Exceptions
 {
     public class InvalidExpressionException : Exception
     {

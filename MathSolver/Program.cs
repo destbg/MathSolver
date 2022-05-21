@@ -1,6 +1,8 @@
 ﻿using MathSolver;
+using MathSolver.Expressions;
+using MathSolver.Models;
 
-MathExpression math = MathParser.Parse("5^x% + sqrt10(y - 1) * y(10 + 10)");
+MathExpression math = MathParser.Parse("15 / 5!");
 
 Console.WriteLine(math.Solve(new MathVariable[]
 {

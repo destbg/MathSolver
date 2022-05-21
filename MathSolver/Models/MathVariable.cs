@@ -1,6 +1,6 @@
-﻿namespace MathSolver
+﻿namespace MathSolver.Models
 {
-    public struct MathVariable
+    public class MathVariable
     {
         public MathVariable(char variable, double number)
         {

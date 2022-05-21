@@ -1,6 +1,6 @@
-﻿namespace MathSolver
+﻿namespace MathSolver.Enums
 {
-    public enum ExpressionType
+    internal enum EquationType
     {
         Number,
         Variable,
