@@ -12,7 +12,6 @@ namespace MathSolver.Expressions
 
         public MathExpressionType Type { get; }
 
-        public string? Coefficient { get; set; }
         public bool IsPercent { get; set; }
         public bool IsFactorial { get; set; }
 

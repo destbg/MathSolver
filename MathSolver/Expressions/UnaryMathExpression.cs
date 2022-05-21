@@ -1,4 +1,5 @@
-﻿using MathSolver.Enums;
+﻿using System.Linq.Expressions;
+using MathSolver.Enums;
 using MathSolver.Exceptions;
 using MathSolver.Helpers;
 using MathSolver.Models;
@@ -18,6 +19,8 @@ namespace MathSolver.Expressions
         public MathExpression LeftOperand { get; }
         public MathExpression RightOperand { get; }
         public MathSymbol Symbol { get; }
+
+        public string? Coefficient { get; set; }
 
         public override double Solve(params MathVariable[] variables)
         {
@@ -50,7 +53,14 @@ namespace MathSolver.Expressions
                 _ => throw new InvalidExpressionException($"The provided symbol {Symbol} was not valid."),
             };
 
-            return MathHelper.CalculateNumberSuffix(result, this);
+            if (!string.IsNullOrEmpty(Coefficient))
+            {
+                result = MathHelper.CalculateCoefficient(Coefficient, result);
+            }
+
+            result = MathHelper.CalculateNumberSuffix(result, this);
+
+            return result;
         }
 
         public override string ToString()

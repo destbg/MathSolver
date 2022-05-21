@@ -18,34 +18,10 @@ namespace MathSolver.Helpers
                 number /= 100;
             }
 
-            if (!string.IsNullOrEmpty(expression.Coefficient))
-            {
-                number = CalculateCoefficient(expression.Coefficient, number);
-            }
-
             return number;
         }
 
-        private static double Factorial(long num)
-        {
-            BigInteger sum = num;
-            BigInteger result = num;
-
-            for (long i = num - 2; i > 1; i -= 2)
-            {
-                sum += i;
-                result *= sum;
-            }
-
-            if (num % 2 != 0)
-            {
-                result *= num / 2 + 1;
-            }
-
-            return (double)result;
-        }
-
-        private static double CalculateCoefficient(string coefficient, double num)
+        public static double CalculateCoefficient(string coefficient, double num)
         {
             if (coefficient.StartsWith("log"))
             {
@@ -104,6 +80,25 @@ namespace MathSolver.Helpers
                 "trunc" => Math.Truncate(num),
                 _ => throw new InvalidExpressionException($"The provided coefficient {coefficient} was not valid."),
             };
+        }
+
+        private static double Factorial(long num)
+        {
+            BigInteger sum = num;
+            BigInteger result = num;
+
+            for (long i = num - 2; i > 1; i -= 2)
+            {
+                sum += i;
+                result *= sum;
+            }
+
+            if (num % 2 != 0)
+            {
+                result *= num / 2 + 1;
+            }
+
+            return (double)result;
         }
     }
 }

@@ -10,18 +10,18 @@ namespace MathSolver.Helpers
         {
             StringBuilder builder = new();
 
-            if (!string.IsNullOrEmpty(expression.Coefficient))
+            if (expression is UnaryMathExpression unaryExpression && !string.IsNullOrEmpty(unaryExpression.Coefficient))
             {
                 if (useBrackets)
                 {
-                    builder = builder.Append(expression.Coefficient)
+                    builder = builder.Append(unaryExpression.Coefficient)
                         .Append('(')
                         .Append(str)
                         .Append(')');
                 }
                 else
                 {
-                    builder = builder.Append(expression.Coefficient).Append(str);
+                    builder = builder.Append(unaryExpression.Coefficient).Append(str);
                 }
             }
             else

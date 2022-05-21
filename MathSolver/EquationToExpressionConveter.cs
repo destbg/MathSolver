@@ -50,12 +50,13 @@ namespace MathSolver
             }
 
             ExpressionEquationPart expression = (ExpressionEquationPart)expressions[0];
+            UnaryMathExpression unaryExpression = (UnaryMathExpression)expression.MathExpression;
 
-            expression.MathExpression.Coefficient = coefficient;
-            expression.MathExpression.IsPercent = isPercent;
-            expression.MathExpression.IsFactorial = isFactorial;
+            unaryExpression.Coefficient = coefficient;
+            unaryExpression.IsPercent = isPercent;
+            unaryExpression.IsFactorial = isFactorial;
 
-            return expression.MathExpression!;
+            return unaryExpression;
         }
 
         private void CheckIfValidEquation()

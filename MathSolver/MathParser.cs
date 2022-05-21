@@ -21,9 +21,7 @@ namespace MathSolver
                 }
                 case MathExpressionType.Constant:
                 {
-                    return expression.IsPercent
-                        ? expression
-                        : new ConstantMathExpression(expression.Solve(), false, false);
+                    return new SolvedConstantMathExpression(expression.Solve(), expression.IsPercent, expression.IsFactorial);
                 }
                 case MathExpressionType.Unary:
                 {
