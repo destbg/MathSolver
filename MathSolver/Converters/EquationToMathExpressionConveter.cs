@@ -1,4 +1,10 @@
-﻿namespace MathSolver.Converters
+﻿using System.Collections.Generic;
+using MathSolver.Enums;
+using MathSolver.Exceptions;
+using MathSolver.Expressions;
+using MathSolver.Models;
+
+namespace MathSolver.Converters
 {
     internal class EquationToMathExpressionConveter
     {
@@ -60,7 +66,7 @@
         {
             if (expressions.Count % 2 == 0)
             {
-                throw new InvalidExpressionException($"The provided equation {equation} was not valid.");
+                throw new InvalidMathExpressionException($"The provided equation {equation} was not valid.");
             }
 
             bool atSymbol = false;
@@ -79,7 +85,7 @@
                 }
                 else
                 {
-                    throw new InvalidExpressionException($"The provided equation {equation} was not valid.");
+                    throw new InvalidMathExpressionException($"The provided equation {equation} was not valid.");
                 }
             }
         }
@@ -92,13 +98,13 @@
             {
                 MathSymbol symbol = ((SymbolEquationPart)expression).Symbol;
 
-                if (symbol is MathSymbol.Addition or MathSymbol.Subraction)
+                if (symbol == MathSymbol.Addition || symbol == MathSymbol.Subraction)
                 {
                     expressions.Insert(indexToInsert, new ConstantEquationPart(0d));
                 }
                 else
                 {
-                    throw new InvalidExpressionException($"The equation {equation} cannot start or end with a multiplication, division or power symbol.");
+                    throw new InvalidMathExpressionException($"The equation {equation} cannot start or end with a multiplication, division or power symbol.");
                 }
             }
         }
@@ -111,7 +117,9 @@
 
                 if (expression.Type == EquationType.Symbol)
                 {
-                    if (((SymbolEquationPart)expression).Symbol is not MathSymbol.Addition and not MathSymbol.Subraction)
+                    MathSymbol symbol = ((SymbolEquationPart)expression).Symbol;
+
+                    if (symbol != MathSymbol.Addition && symbol != MathSymbol.Subraction)
                     {
                         return i;
                     }
@@ -134,7 +142,7 @@
 
             MathExpression mathExpression = new UnaryMathExpression(leftExpression, rightExpression, symbol, new List<MathSuffixSymbol>());
 
-            ExpressionEquationPart newExpression = new(mathExpression);
+            ExpressionEquationPart newExpression = new ExpressionEquationPart(mathExpression);
 
             expressions.RemoveAt(expressionIndex - 1);
             expressions.RemoveAt(expressionIndex - 1);
@@ -169,7 +177,7 @@
                 return ((ExpressionEquationPart)expression).MathExpression;
             }
 
-            throw new InvalidExpressionException($"The provided equation {equation} was not valid.");
+            throw new InvalidMathExpressionException($"The provided equation {equation} was not valid.");
         }
     }
 }

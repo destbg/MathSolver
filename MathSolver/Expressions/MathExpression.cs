@@ -1,4 +1,8 @@
-﻿namespace MathSolver.Expressions
+﻿using System.Collections.Generic;
+using MathSolver.Enums;
+using MathSolver.Models;
+
+namespace MathSolver.Expressions
 {
     public abstract class MathExpression
     {

@@ -1,4 +1,10 @@
-﻿namespace MathSolver.Expressions
+﻿using System.Collections.Generic;
+using MathSolver.Enums;
+using MathSolver.Exceptions;
+using MathSolver.Helpers;
+using MathSolver.Models;
+
+namespace MathSolver.Expressions
 {
     public class ConstantMathExpression : MathExpression
     {
@@ -20,7 +26,7 @@
                 {
                     MathSuffixSymbol.Factorial => MathHelper.Factorial(result),
                     MathSuffixSymbol.Percent => result / 100,
-                    _ => throw new Exception($"Internal exception: {nameof(Solve)} method does not implement {nameof(MathSuffixSymbol)}.")
+                    _ => throw new InvalidMathExpressionException($"Internal exception: {nameof(Solve)} method does not implement {nameof(MathSuffixSymbol)}.")
                 };
             }
 

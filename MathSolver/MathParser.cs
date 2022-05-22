@@ -1,4 +1,10 @@
-﻿using System.Linq.Expressions;
+﻿using System.Collections.Generic;
+using System.Linq.Expressions;
+using MathSolver.Converters;
+using MathSolver.Enums;
+using MathSolver.Exceptions;
+using MathSolver.Expressions;
+using MathSolver.Models;
 
 namespace MathSolver
 {
@@ -28,7 +34,7 @@ namespace MathSolver
                     MathExpression leftOperand = Simplify(unaryExpression.LeftOperand);
                     MathExpression rightOperand = Simplify(unaryExpression.RightOperand);
 
-                    UnaryMathExpression newExpression = new(leftOperand, rightOperand, unaryExpression.Symbol, unaryExpression.SuffixSymbols)
+                    UnaryMathExpression newExpression = new UnaryMathExpression(leftOperand, rightOperand, unaryExpression.Symbol, unaryExpression.SuffixSymbols)
                     {
                         Coefficient = unaryExpression.Coefficient,
                     };
@@ -48,7 +54,7 @@ namespace MathSolver
 
                     MathExpression operand = Simplify(singleExpression.Operand);
 
-                    SingleMathExpression newExpression = new(operand, singleExpression.SuffixSymbols)
+                    SingleMathExpression newExpression = new SingleMathExpression(operand, singleExpression.SuffixSymbols)
                     {
                         Coefficient = singleExpression.Coefficient,
                     };
@@ -63,24 +69,24 @@ namespace MathSolver
                     }
                 }
                 default:
-                    throw new Exception($"Internal Exception: The {nameof(Simplify)} method did not have a {nameof(MathExpressionType)} implemented.");
+                    throw new InvalidMathExpressionException($"Internal Exception: The {nameof(Simplify)} method did not have a {nameof(MathExpressionType)} implemented.");
             }
         }
 
         public static (Expression Expression, List<ParameterExpression> Parameters) ConvertToCSharpExpression(MathExpression mathExpression)
         {
-            MathExpressionToExpressionConverter mathExpressionToExpressionConverter = new(mathExpression);
+            MathExpressionToExpressionConverter mathExpressionToExpressionConverter = new MathExpressionToExpressionConverter(mathExpression);
 
             return (mathExpressionToExpressionConverter.Convert(), mathExpressionToExpressionConverter.Parameters);
         }
 
         internal static MathExpression Parse(string equation, string? coefficient, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
         {
-            TextToEquationConverter parser = new(equation);
+            TextToEquationConverter parser = new TextToEquationConverter(equation);
 
             List<EquationPart> expressions = parser.Convert();
 
-            EquationToMathExpressionConveter converter = new(equation, expressions, coefficient, suffixSymbols);
+            EquationToMathExpressionConveter converter = new EquationToMathExpressionConveter(equation, expressions, coefficient, suffixSymbols);
 
             return converter.Convert();
         }

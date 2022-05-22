@@ -1,4 +1,11 @@
-﻿using System.Linq.Expressions;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using MathSolver.Enums;
+using MathSolver.Exceptions;
+using MathSolver.Expressions;
+using MathSolver.Helpers;
 
 namespace MathSolver.Converters
 {
@@ -38,7 +45,7 @@ namespace MathSolver.Converters
                         {
                             MathSuffixSymbol.Factorial => Expression.Call(typeof(MathHelper), nameof(MathHelper.Factorial), null, exp),
                             MathSuffixSymbol.Percent => Expression.Divide(exp, Expression.Constant(100d)),
-                            _ => throw new Exception($"Internal exception: {nameof(ParseMathToCSharp)} method does not implement {nameof(MathSuffixSymbol)}.")
+                            _ => throw new InvalidMathExpressionException($"Internal exception: {nameof(ParseMathToCSharp)} method does not implement {nameof(MathSuffixSymbol)}.")
                         };
                     }
 
@@ -62,7 +69,7 @@ namespace MathSolver.Converters
                             {
                                 MathSuffixSymbol.Factorial => Expression.Call(typeof(MathHelper), nameof(MathHelper.Factorial), null, exp),
                                 MathSuffixSymbol.Percent => Expression.Divide(exp, Expression.Constant(100d)),
-                                _ => throw new Exception($"Internal exception: {nameof(ParseMathToCSharp)} method does not implement {nameof(MathSuffixSymbol)}.")
+                                _ => throw new InvalidMathExpressionException($"Internal exception: {nameof(ParseMathToCSharp)} method does not implement {nameof(MathSuffixSymbol)}.")
                             };
                         }
 
@@ -84,7 +91,7 @@ namespace MathSolver.Converters
                         {
                             MathSuffixSymbol.Factorial => Expression.Call(typeof(MathHelper), nameof(MathHelper.Factorial), null, exp),
                             MathSuffixSymbol.Percent => Expression.Divide(exp, Expression.Constant(100d)),
-                            _ => throw new Exception($"Internal exception: {nameof(ParseMathToCSharp)} method does not implement {nameof(MathSuffixSymbol)}.")
+                            _ => throw new InvalidMathExpressionException($"Internal exception: {nameof(ParseMathToCSharp)} method does not implement {nameof(MathSuffixSymbol)}.")
                         };
                     }
 
@@ -109,7 +116,7 @@ namespace MathSolver.Converters
                         {
                             MathSuffixSymbol.Factorial => Expression.Call(typeof(MathHelper), nameof(MathHelper.Factorial), null, exp),
                             MathSuffixSymbol.Percent => Expression.Divide(exp, Expression.Constant(100d)),
-                            _ => throw new Exception($"Internal exception: {nameof(ParseMathToCSharp)} method does not implement {nameof(MathSuffixSymbol)}.")
+                            _ => throw new InvalidMathExpressionException($"Internal exception: {nameof(ParseMathToCSharp)} method does not implement {nameof(MathSuffixSymbol)}.")
                         };
                     }
 
@@ -123,7 +130,7 @@ namespace MathSolver.Converters
                     return exp;
                 }
                 default:
-                    throw new Exception($"Internal Exception: The {nameof(ParseMathToCSharp)} method did not have a {nameof(MathExpressionType)} implemented.");
+                    throw new InvalidMathExpressionException($"Internal Exception: The {nameof(ParseMathToCSharp)} method did not have a {nameof(MathExpressionType)} implemented.");
             }
         }
 
@@ -156,7 +163,7 @@ namespace MathSolver.Converters
                 MathSymbol.Multiplication => Expression.Multiply(leftExpression, rightExpression),
                 MathSymbol.Division => Expression.Divide(leftExpression, rightExpression),
                 MathSymbol.Power => Expression.Call(typeof(Math), nameof(Math.Pow), null, leftExpression, rightExpression),
-                _ => throw new Exception($"Internal Exception: Method {nameof(CreateEquation)} does not have a {nameof(MathSymbol)} implemented."),
+                _ => throw new InvalidMathExpressionException($"Internal Exception: Method {nameof(CreateEquation)} does not have a {nameof(MathSymbol)} implemented."),
             };
         }
 
@@ -164,11 +171,7 @@ namespace MathSolver.Converters
         {
             if (coefficient.StartsWith("log"))
             {
-                if (coefficient == "log2")
-                {
-                    return (nameof(Math.Log2), new[] { expression });
-                }
-                else if (coefficient == "log10")
+                if (coefficient == "log10")
                 {
                     return (nameof(Math.Log10), new[] { expression });
                 }
@@ -210,7 +213,7 @@ namespace MathSolver.Converters
                 "tan" => (nameof(Math.Tan), new[] { expression }),
                 "tanh" => (nameof(Math.Tanh), new[] { expression }),
                 "trunc" => (nameof(Math.Truncate), new[] { expression }),
-                _ => throw new InvalidExpressionException($"The provided coefficient {coefficient} was not valid."),
+                _ => throw new InvalidMathExpressionException($"The provided coefficient {coefficient} was not valid."),
             };
         }
 
@@ -256,7 +259,7 @@ namespace MathSolver.Converters
                 case MathExpressionType.Constant:
                     return null;
                 default:
-                    throw new Exception($"Internal exception: {nameof(VariableFinder)} does not implement {nameof(MathExpressionType)}.");
+                    throw new InvalidMathExpressionException($"Internal exception: {nameof(VariableFinder)} does not implement {nameof(MathExpressionType)}.");
             }
         }
     }

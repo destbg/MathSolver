@@ -1,4 +1,6 @@
-﻿namespace MathSolver.Models
+﻿using MathSolver.Enums;
+
+namespace MathSolver.Models
 {
     internal class SubEquationPart : EquationPart
     {

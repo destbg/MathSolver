@@ -1,4 +1,7 @@
 ﻿using System.Text;
+using MathSolver.Enums;
+using MathSolver.Exceptions;
+using MathSolver.Expressions;
 
 namespace MathSolver.Helpers
 {
@@ -6,7 +9,7 @@ namespace MathSolver.Helpers
     {
         public static string ExpressionSuffix(string str, MathExpression expression, bool useBrackets = true)
         {
-            StringBuilder builder = new();
+            StringBuilder builder = new StringBuilder();
 
             if (expression is UnaryMathExpression unaryExpression && !string.IsNullOrEmpty(unaryExpression.Coefficient))
             {
@@ -47,7 +50,7 @@ namespace MathSolver.Helpers
                 {
                     MathSuffixSymbol.Factorial => builder.Append('!'),
                     MathSuffixSymbol.Percent => builder.Append('%'),
-                    _ => throw new Exception($"Internal exception: {nameof(ExpressionSuffix)} method does not implement {nameof(MathSuffixSymbol)}.")
+                    _ => throw new InvalidMathExpressionException($"Internal exception: {nameof(ExpressionSuffix)} method does not implement {nameof(MathSuffixSymbol)}.")
                 };
             }
 

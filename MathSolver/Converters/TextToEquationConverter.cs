@@ -1,4 +1,9 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using MathSolver.Enums;
+using MathSolver.Exceptions;
+using MathSolver.Models;
 
 namespace MathSolver.Converters
 {
@@ -26,7 +31,7 @@ namespace MathSolver.Converters
                 {
                     FoundNumber(letter);
                 }
-                else if (letter is '+' or '-' or '*' or '/' or '^' or '.')
+                else if (letter == '+' || letter == '-' || letter == '*' || letter == '/' || letter == '^' || letter == '.')
                 {
                     FoundMathSymbol(letter);
                 }
@@ -52,7 +57,7 @@ namespace MathSolver.Converters
                 }
                 else
                 {
-                    throw new InvalidExpressionException($"The provided letter {letter} was not valid.");
+                    throw new InvalidMathExpressionException($"The provided letter {letter} was not valid.");
                 }
             }
 
@@ -82,7 +87,7 @@ namespace MathSolver.Converters
             }
             else
             {
-                throw new InvalidExpressionException($"The provided number {numberRange} was not valid.");
+                throw new InvalidMathExpressionException($"The provided number {numberRange} was not valid.");
             }
         }
 
@@ -96,7 +101,7 @@ namespace MathSolver.Converters
                 '.' => MathSymbol.Multiplication,
                 '/' => MathSymbol.Division,
                 '^' => MathSymbol.Power,
-                _ => throw new InvalidExpressionException($"The provided math symbol {letter} was not valid."),
+                _ => throw new InvalidMathExpressionException($"The provided math symbol {letter} was not valid."),
             };
 
             expressions.Add(new SymbolEquationPart(symbol));
@@ -108,14 +113,14 @@ namespace MathSolver.Converters
         {
             if (expressions.Count < 1)
             {
-                throw new InvalidExpressionException($"The provided equation {equation} was not valid.");
+                throw new InvalidMathExpressionException($"The provided equation {equation} was not valid.");
             }
 
             EquationPart lastExpression = expressions[^1];
 
             if (lastExpression.Type == EquationType.Symbol)
             {
-                throw new InvalidExpressionException($"The provided equation {equation} was not valid.");
+                throw new InvalidMathExpressionException($"The provided equation {equation} was not valid.");
             }
 
             lastExpression.SuffixSymbols.Add(MathSuffixSymbol.Factorial);
@@ -127,14 +132,14 @@ namespace MathSolver.Converters
         {
             if (expressions.Count < 1)
             {
-                throw new InvalidExpressionException($"The provided equation {equation} was not valid.");
+                throw new InvalidMathExpressionException($"The provided equation {equation} was not valid.");
             }
 
             EquationPart lastExpression = expressions[^1];
 
             if (lastExpression.Type == EquationType.Symbol)
             {
-                throw new InvalidExpressionException($"The provided equation {equation} was not valid.");
+                throw new InvalidMathExpressionException($"The provided equation {equation} was not valid.");
             }
 
             lastExpression.SuffixSymbols.Add(MathSuffixSymbol.Percent);
@@ -172,17 +177,13 @@ namespace MathSolver.Converters
                 {
                     expressions.Add(new ConstantEquationPart(Math.PI));
                 }
-                else if (coefficientRange == "tau")
-                {
-                    expressions.Add(new ConstantEquationPart(Math.Tau));
-                }
                 else if (!HasBracket())
                 {
-                    throw new InvalidExpressionException($"The provided coefficient {coefficientRange} was not followed by a bracket.");
+                    throw new InvalidMathExpressionException($"The provided coefficient {coefficientRange} was not followed by a bracket.");
                 }
                 else if (!IsValidCoefficient(coefficientRange))
                 {
-                    throw new InvalidExpressionException($"The provided coefficient {coefficientRange} was not valid.");
+                    throw new InvalidMathExpressionException($"The provided coefficient {coefficientRange} was not valid.");
                 }
                 else
                 {

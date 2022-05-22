@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
+using MathSolver.Exceptions;
 
 namespace MathSolver.Helpers
 {
@@ -8,11 +10,7 @@ namespace MathSolver.Helpers
         {
             if (coefficient.StartsWith("log"))
             {
-                if (coefficient == "log2")
-                {
-                    return Math.Log2(num);
-                }
-                else if (coefficient == "log10")
+                if (coefficient == "log10")
                 {
                     return Math.Log10(num);
                 }
@@ -53,7 +51,7 @@ namespace MathSolver.Helpers
                 "tan" => Math.Tan(num),
                 "tanh" => Math.Tanh(num),
                 "trunc" => Math.Truncate(num),
-                _ => throw new InvalidExpressionException($"The provided coefficient {coefficient} was not valid."),
+                _ => throw new InvalidMathExpressionException($"The provided coefficient {coefficient} was not valid."),
             };
         }
 

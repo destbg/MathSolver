@@ -1,4 +1,7 @@
-﻿namespace MathSolver.Models
+﻿using System.Collections.Generic;
+using MathSolver.Enums;
+
+namespace MathSolver.Models
 {
     internal abstract class EquationPart
     {

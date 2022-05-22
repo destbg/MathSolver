@@ -1,4 +1,11 @@
-﻿namespace MathSolver.Expressions
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using MathSolver.Enums;
+using MathSolver.Helpers;
+using MathSolver.Models;
+
+namespace MathSolver.Expressions
 {
     public class UnaryMathExpression : MathExpression
     {
@@ -56,7 +63,7 @@
                 {
                     MathSuffixSymbol.Factorial => MathHelper.Factorial(result),
                     MathSuffixSymbol.Percent => result / 100,
-                    _ => throw new Exception($"Internal exception: {nameof(Solve)} method does not implement {nameof(MathSuffixSymbol)}.")
+                    _ => throw new InvalidExpressionException($"Internal exception: {nameof(Solve)} method does not implement {nameof(MathSuffixSymbol)}.")
                 };
             }
 
@@ -75,11 +82,9 @@
 
         private static double FindPercent(double num, double percent, MathSymbol symbol)
         {
-            return symbol switch
-            {
-                MathSymbol.Addition or MathSymbol.Subraction => num * percent,
-                _ => percent,
-            };
+            return symbol == MathSymbol.Addition || symbol == MathSymbol.Subraction
+                ? num * percent
+                : percent;
         }
     }
 }

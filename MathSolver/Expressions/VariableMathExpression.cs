@@ -1,4 +1,10 @@
-﻿namespace MathSolver.Expressions
+﻿using System.Collections.Generic;
+using MathSolver.Enums;
+using MathSolver.Exceptions;
+using MathSolver.Helpers;
+using MathSolver.Models;
+
+namespace MathSolver.Expressions
 {
     public class VariableMathExpression : MathExpression
     {
@@ -24,7 +30,7 @@
                         {
                             MathSuffixSymbol.Factorial => MathHelper.Factorial(result),
                             MathSuffixSymbol.Percent => result / 100,
-                            _ => throw new Exception($"Internal exception: {nameof(Solve)} method does not implement {nameof(MathSuffixSymbol)}.")
+                            _ => throw new InvalidMathExpressionException($"Internal exception: {nameof(Solve)} method does not implement {nameof(MathSuffixSymbol)}.")
                         };
                     }
 
@@ -32,7 +38,7 @@
                 }
             }
 
-            throw new InvalidExpressionException($"The provided variable {Variable} was not found in the list of variables {variables}.");
+            throw new InvalidMathExpressionException($"The provided variable {Variable} was not found in the list of variables {variables}.");
         }
 
         public override string ToString()
