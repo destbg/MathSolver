@@ -35,7 +35,7 @@ namespace MathSolver.Expressions
 
         public override string ToString()
         {
-            return ToStringHelper.ExpressionSuffix(Number.ToString(), this);
+            return this.Suffix(Number.ToString(), BracketType.None);
         }
     }
 }

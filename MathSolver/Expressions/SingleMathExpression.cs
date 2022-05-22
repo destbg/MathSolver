@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using MathSolver.Enums;
 using MathSolver.Exceptions;
 using MathSolver.Helpers;
@@ -8,15 +9,17 @@ namespace MathSolver.Expressions
 {
     public class SingleMathExpression : MathExpression
     {
-        public SingleMathExpression(MathExpression operand, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
+        public SingleMathExpression(MathExpression operand, BracketType bracket, IReadOnlyList<MathSuffixSymbol> suffixSymbols, string? coefficient = null)
             : base(MathExpressionType.Single, suffixSymbols)
         {
             Operand = operand;
+            Bracket = bracket;
+            Coefficient = coefficient;
         }
 
         public MathExpression Operand { get; }
-
-        public string? Coefficient { get; internal set; }
+        public BracketType Bracket { get; }
+        public string? Coefficient { get; }
 
         public override double Solve(params MathVariable[] variables)
         {
@@ -32,6 +35,11 @@ namespace MathSolver.Expressions
                 };
             }
 
+            if (Bracket == BracketType.Straight)
+            {
+                result = Math.Abs(result);
+            }
+
             if (!string.IsNullOrEmpty(Coefficient))
             {
                 result = MathHelper.CalculateCoefficient(Coefficient, result);
@@ -42,7 +50,7 @@ namespace MathSolver.Expressions
 
         public override string ToString()
         {
-            return ToStringHelper.ExpressionSuffix($"({Operand})", this, false);
+            return this.Suffix(Operand.ToString(), Bracket);
         }
     }
 }

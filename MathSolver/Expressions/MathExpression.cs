@@ -14,7 +14,7 @@ namespace MathSolver.Expressions
 
         public MathExpressionType Type { get; }
 
-        public IReadOnlyList<MathSuffixSymbol> SuffixSymbols { get; internal set; }
+        public IReadOnlyList<MathSuffixSymbol> SuffixSymbols { get; }
 
         public abstract double Solve(params MathVariable[] variables);
 

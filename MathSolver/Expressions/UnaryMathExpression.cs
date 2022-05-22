@@ -9,19 +9,21 @@ namespace MathSolver.Expressions
 {
     public class UnaryMathExpression : MathExpression
     {
-        public UnaryMathExpression(MathExpression leftOperand, MathExpression rightOperand, MathSymbol symbol, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
+        public UnaryMathExpression(MathExpression leftOperand, MathExpression rightOperand, MathSymbol symbol, BracketType bracket, IReadOnlyList<MathSuffixSymbol> suffixSymbols, string? coefficient = null)
             : base(MathExpressionType.Unary, suffixSymbols)
         {
             LeftOperand = leftOperand;
             RightOperand = rightOperand;
             Symbol = symbol;
+            Bracket = bracket;
+            Coefficient = coefficient;
         }
 
         public MathExpression LeftOperand { get; }
         public MathExpression RightOperand { get; }
         public MathSymbol Symbol { get; }
-
-        public string? Coefficient { get; internal set; }
+        public BracketType Bracket { get; }
+        public string? Coefficient { get; }
 
         public override double Solve(params MathVariable[] variables)
         {
@@ -67,6 +69,11 @@ namespace MathSolver.Expressions
                 };
             }
 
+            if (Bracket == BracketType.Straight)
+            {
+                result = Math.Abs(result);
+            }
+
             if (!string.IsNullOrEmpty(Coefficient))
             {
                 result = MathHelper.CalculateCoefficient(Coefficient, result);
@@ -77,7 +84,7 @@ namespace MathSolver.Expressions
 
         public override string ToString()
         {
-            return ToStringHelper.ExpressionSuffix($"({LeftOperand} {ToStringHelper.SymbolEnumToChar(Symbol)} {RightOperand})", this, false);
+            return this.Suffix($"{LeftOperand} {ToStringHelper.SymbolEnumToChar(Symbol)} {RightOperand}", Bracket);
         }
 
         private static double FindPercent(double num, double percent, MathSymbol symbol)

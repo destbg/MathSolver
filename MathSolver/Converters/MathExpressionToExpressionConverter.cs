@@ -95,6 +95,11 @@ namespace MathSolver.Converters
                         };
                     }
 
+                    if (unaryMath.Bracket == BracketType.Straight)
+                    {
+                        exp = Expression.Call(typeof(Math), nameof(Math.Abs), null, exp);
+                    }
+
                     if (!string.IsNullOrEmpty(unaryMath.Coefficient))
                     {
                         (string method, Expression[] parameters) = CreateCoefficientCall(unaryMath.Coefficient, exp);
@@ -118,6 +123,11 @@ namespace MathSolver.Converters
                             MathSuffixSymbol.Percent => Expression.Divide(exp, Expression.Constant(100d)),
                             _ => throw new InvalidMathExpressionException($"Internal exception: {nameof(ParseMathToCSharp)} method does not implement {nameof(MathSuffixSymbol)}.")
                         };
+                    }
+
+                    if (singleMath.Bracket == BracketType.Straight)
+                    {
+                        exp = Expression.Call(typeof(Math), nameof(Math.Abs), null, exp);
                     }
 
                     if (!string.IsNullOrEmpty(singleMath.Coefficient))

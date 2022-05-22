@@ -44,7 +44,7 @@ namespace MathSolver.Expressions
 
         public override string ToString()
         {
-            return ToStringHelper.ExpressionSuffix(Variable.ToString(), this);
+            return this.Suffix(Variable.ToString(), BracketType.None);
         }
     }
 }

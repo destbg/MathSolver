@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using MathSolver.Enums;
 using MathSolver.Exceptions;
 using MathSolver.Models;
@@ -16,7 +17,7 @@ namespace MathSolver.Converters
 
         public TextToEquationConverter(string equation)
         {
-            this.equation = equation.ToLower().TrimEnd(' ') + " ";
+            this.equation = equation.TrimEnd(' ') + " ";
             expressions = new List<EquationPart>();
             index = 0;
         }
@@ -47,7 +48,7 @@ namespace MathSolver.Converters
                 {
                     FoundVariableOrCoefficient(letter);
                 }
-                else if (letter == '(')
+                else if (letter == '(' || letter == '[' || letter == '<' || letter == '{' || letter == '|')
                 {
                     FoundBracket();
                 }
@@ -171,11 +172,15 @@ namespace MathSolver.Converters
             }
             else
             {
-                string coefficientRange = equation[startIndex..index];
+                string coefficientRange = equation[startIndex..index].ToLower();
 
                 if (coefficientRange == "pi")
                 {
                     expressions.Add(new ConstantEquationPart(Math.PI));
+                }
+                else if (coefficientRange == "tau")
+                {
+                    expressions.Add(new ConstantEquationPart(6.2831853071795862));
                 }
                 else if (!HasBracket())
                 {
@@ -194,20 +199,42 @@ namespace MathSolver.Converters
 
         private void FoundBracket(string? coefficient = null)
         {
+            BracketType bracketType = MapToBracketType(equation[index]);
             int startIndex = index;
-            int openingBracketCount = 1;
 
-            while (openingBracketCount > 0)
+            Dictionary<BracketType, int> brackets = new Dictionary<BracketType, int>
             {
-                char letter = equation[++index];
+                { BracketType.Straight, 0 },
+                { BracketType.Parentheses, 0 },
+                { BracketType.Square, 0 },
+                { BracketType.Angle, 0 },
+                { BracketType.Curly, 0 }
+            };
 
-                if (letter == '(')
+            brackets[bracketType] = 1;
+
+            while (brackets.Values.Any(f => f != 0) && equation.Length > index)
+            {
+                char c = equation[++index];
+
+                if (c == '|')
                 {
-                    openingBracketCount++;
+                    if (brackets[BracketType.Straight] == 0 || IsOpeningStraightBracket())
+                    {
+                        brackets[BracketType.Straight]++;
+                    }
+                    else
+                    {
+                        brackets[BracketType.Straight]--;
+                    }
                 }
-                else if (letter == ')')
+                else if (c == '(' || c == '[' || c == '<' || c == '{')
                 {
-                    openingBracketCount--;
+                    brackets[MapToBracketType(c)]++;
+                }
+                else if (c == ')' || c == ']' || c == '>' || c == '}')
+                {
+                    brackets[MapToBracketType(c)]--;
                 }
             }
 
@@ -218,7 +245,7 @@ namespace MathSolver.Converters
                 expressions.Add(new SymbolEquationPart(MathSymbol.Multiplication));
             }
 
-            expressions.Add(new SubEquationPart(coefficient, expressionRange));
+            expressions.Add(new SubEquationPart(coefficient, expressionRange, bracketType));
             index++;
         }
 
@@ -230,8 +257,35 @@ namespace MathSolver.Converters
 
                 if (c != ' ')
                 {
-                    return c == '(';
+                    return c == '(' || c == '|' || c == '[' || c == '<' || c == '{';
                 }
+            }
+
+            return false;
+        }
+
+        private bool IsOpeningStraightBracket()
+        {
+            int i = index - 1;
+
+            while (equation[i] == ' ') { i--; }
+
+            char c = equation[i];
+
+            if (char.IsLetter(c) || char.IsNumber(c))
+            {
+                int coefficientIndex = i + 1;
+
+                while (char.IsLetter(c) || char.IsNumber(c))
+                {
+                    c = equation[--i];
+                }
+
+                return IsValidCoefficient(equation[(i + 1)..coefficientIndex]);
+            }
+            else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '.')
+            {
+                return true;
             }
 
             return false;
@@ -273,6 +327,29 @@ namespace MathSolver.Converters
                 "trunc" => true,
                 _ => false,
             };
+        }
+
+        private static BracketType MapToBracketType(char c)
+        {
+            switch (c)
+            {
+                case '(':
+                case ')':
+                    return BracketType.Parentheses;
+                case '[':
+                case ']':
+                    return BracketType.Square;
+                case '<':
+                case '>':
+                    return BracketType.Angle;
+                case '}':
+                case '{':
+                    return BracketType.Curly;
+                case '|':
+                    return BracketType.Straight;
+                default:
+                    throw new InvalidMathExpressionException($"Internal Exception: The method {nameof(MapToBracketType)} did not have a {nameof(BracketType)} implemented.");
+            }
         }
     }
 }

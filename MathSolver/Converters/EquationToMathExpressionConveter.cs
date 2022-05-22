@@ -10,14 +10,16 @@ namespace MathSolver.Converters
     {
         private readonly string equation;
         private readonly string? coefficient;
+        private readonly BracketType bracketType;
         private readonly IReadOnlyList<MathSuffixSymbol> suffixSymbols;
         private readonly List<EquationPart> expressions;
 
-        public EquationToMathExpressionConveter(string equation, List<EquationPart> expressions, string? coefficient, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
+        public EquationToMathExpressionConveter(string equation, List<EquationPart> expressions, string? coefficient, BracketType bracketType, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
         {
             this.equation = equation;
             this.expressions = expressions;
             this.coefficient = coefficient;
+            this.bracketType = bracketType;
             this.suffixSymbols = suffixSymbols;
         }
 
@@ -45,20 +47,14 @@ namespace MathSolver.Converters
             {
                 MathExpression expression = ConvertExpression(expressions[0]);
 
-                return new SingleMathExpression(expression, suffixSymbols)
-                {
-                    Coefficient = coefficient
-                };
+                return new SingleMathExpression(expression, bracketType, suffixSymbols, coefficient);
             }
             else
             {
                 ExpressionEquationPart expression = (ExpressionEquationPart)expressions[0];
                 UnaryMathExpression unaryExpression = (UnaryMathExpression)expression.MathExpression;
 
-                unaryExpression.Coefficient = coefficient;
-                unaryExpression.SuffixSymbols = suffixSymbols;
-
-                return unaryExpression;
+                return new UnaryMathExpression(unaryExpression.LeftOperand, unaryExpression.RightOperand, unaryExpression.Symbol, bracketType, suffixSymbols, coefficient);
             }
         }
 
@@ -140,7 +136,7 @@ namespace MathSolver.Converters
 
             MathSymbol symbol = ((SymbolEquationPart)simpleSymbol).Symbol;
 
-            MathExpression mathExpression = new UnaryMathExpression(leftExpression, rightExpression, symbol, new List<MathSuffixSymbol>());
+            MathExpression mathExpression = new UnaryMathExpression(leftExpression, rightExpression, symbol, BracketType.None, new List<MathSuffixSymbol>());
 
             ExpressionEquationPart newExpression = new ExpressionEquationPart(mathExpression);
 
@@ -156,7 +152,7 @@ namespace MathSolver.Converters
             {
                 SubEquationPart subEquation = (SubEquationPart)expression;
 
-                MathExpression mathExpression = MathParser.Parse(subEquation.Expression, subEquation.Coefficient, subEquation.SuffixSymbols);
+                MathExpression mathExpression = MathParser.Parse(subEquation.Expression, subEquation.Coefficient, subEquation.Bracket, subEquation.SuffixSymbols);
 
                 return mathExpression;
             }

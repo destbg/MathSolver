@@ -12,7 +12,7 @@ namespace MathSolver
     {
         public static MathExpression Parse(string equation)
         {
-            return Parse(equation, null, new List<MathSuffixSymbol>());
+            return Parse(equation, null, BracketType.None, new List<MathSuffixSymbol>());
         }
 
         public static MathExpression Simplify(MathExpression expression)
@@ -34,10 +34,7 @@ namespace MathSolver
                     MathExpression leftOperand = Simplify(unaryExpression.LeftOperand);
                     MathExpression rightOperand = Simplify(unaryExpression.RightOperand);
 
-                    UnaryMathExpression newExpression = new UnaryMathExpression(leftOperand, rightOperand, unaryExpression.Symbol, unaryExpression.SuffixSymbols)
-                    {
-                        Coefficient = unaryExpression.Coefficient,
-                    };
+                    UnaryMathExpression newExpression = new UnaryMathExpression(leftOperand, rightOperand, unaryExpression.Symbol, unaryExpression.Bracket, unaryExpression.SuffixSymbols, unaryExpression.Coefficient);
 
                     if (leftOperand.Type == MathExpressionType.Constant && rightOperand.Type == MathExpressionType.Constant)
                     {
@@ -54,10 +51,7 @@ namespace MathSolver
 
                     MathExpression operand = Simplify(singleExpression.Operand);
 
-                    SingleMathExpression newExpression = new SingleMathExpression(operand, singleExpression.SuffixSymbols)
-                    {
-                        Coefficient = singleExpression.Coefficient,
-                    };
+                    SingleMathExpression newExpression = new SingleMathExpression(operand, singleExpression.Bracket, singleExpression.SuffixSymbols, singleExpression.Coefficient);
 
                     if (operand.Type == MathExpressionType.Constant)
                     {
@@ -80,13 +74,13 @@ namespace MathSolver
             return (mathExpressionToExpressionConverter.Convert(), mathExpressionToExpressionConverter.Parameters);
         }
 
-        internal static MathExpression Parse(string equation, string? coefficient, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
+        internal static MathExpression Parse(string equation, string? coefficient, BracketType bracketType, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
         {
             TextToEquationConverter parser = new TextToEquationConverter(equation);
 
             List<EquationPart> expressions = parser.Convert();
 
-            EquationToMathExpressionConveter converter = new EquationToMathExpressionConveter(equation, expressions, coefficient, suffixSymbols);
+            EquationToMathExpressionConveter converter = new EquationToMathExpressionConveter(equation, expressions, coefficient, bracketType, suffixSymbols);
 
             return converter.Convert();
         }
