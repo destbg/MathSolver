@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using MathSolver.Enums;
 using MathSolver.Exceptions;
 using MathSolver.Helpers;
@@ -38,7 +39,7 @@ namespace MathSolver.Expressions
                 }
             }
 
-            throw new InvalidMathExpressionException($"The provided variable {Variable} was not found in the list of variables {variables}.");
+            throw new InvalidMathExpressionException($"The provided variable {Variable} was not found in the list of variables {string.Join(", ", variables.Select(f => f.Variable))}.");
         }
 
         public override string ToString()
