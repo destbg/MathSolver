@@ -1,25 +1,18 @@
-﻿using MathSolver.Enums;
-using MathSolver.Exceptions;
-using MathSolver.Expressions;
-using MathSolver.Models;
-
-namespace MathSolver.Converters
+﻿namespace MathSolver.Converters
 {
     internal class EquationToMathExpressionConveter
     {
         private readonly string equation;
         private readonly string? coefficient;
-        private readonly bool isPercent;
-        private readonly bool isFactorial;
+        private readonly IReadOnlyList<MathSuffixSymbol> suffixSymbols;
         private readonly List<EquationPart> expressions;
 
-        public EquationToMathExpressionConveter(string equation, List<EquationPart> expressions, string? coefficient, bool isPercent, bool isFactorial)
+        public EquationToMathExpressionConveter(string equation, List<EquationPart> expressions, string? coefficient, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
         {
             this.equation = equation;
             this.expressions = expressions;
             this.coefficient = coefficient;
-            this.isPercent = isPercent;
-            this.isFactorial = isFactorial;
+            this.suffixSymbols = suffixSymbols;
         }
 
         public MathExpression Convert()
@@ -44,19 +37,23 @@ namespace MathSolver.Converters
             // This can happen if the expression is only a number
             if (expressions[0].Type != EquationType.MathExpression)
             {
-                expressions.Add(new SymbolEquationPart(MathSymbol.Multiplication));
-                expressions.Add(new ConstantEquationPart(1d));
-                SimplifyExpression(1);
+                MathExpression expression = ConvertExpression(expressions[0]);
+
+                return new SingleMathExpression(expression, suffixSymbols)
+                {
+                    Coefficient = coefficient
+                };
             }
+            else
+            {
+                ExpressionEquationPart expression = (ExpressionEquationPart)expressions[0];
+                UnaryMathExpression unaryExpression = (UnaryMathExpression)expression.MathExpression;
 
-            ExpressionEquationPart expression = (ExpressionEquationPart)expressions[0];
-            UnaryMathExpression unaryExpression = (UnaryMathExpression)expression.MathExpression;
+                unaryExpression.Coefficient = coefficient;
+                unaryExpression.SuffixSymbols = suffixSymbols;
 
-            unaryExpression.Coefficient = coefficient;
-            unaryExpression.IsPercent = isPercent;
-            unaryExpression.IsFactorial = isFactorial;
-
-            return unaryExpression;
+                return unaryExpression;
+            }
         }
 
         private void CheckIfValidEquation()
@@ -135,7 +132,7 @@ namespace MathSolver.Converters
 
             MathSymbol symbol = ((SymbolEquationPart)simpleSymbol).Symbol;
 
-            MathExpression mathExpression = new UnaryMathExpression(leftExpression, rightExpression, symbol);
+            MathExpression mathExpression = new UnaryMathExpression(leftExpression, rightExpression, symbol, new List<MathSuffixSymbol>());
 
             ExpressionEquationPart newExpression = new(mathExpression);
 
@@ -151,7 +148,7 @@ namespace MathSolver.Converters
             {
                 SubEquationPart subEquation = (SubEquationPart)expression;
 
-                MathExpression mathExpression = MathParser.Parse(subEquation.Expression, subEquation.Coefficient, subEquation.IsPercent, subEquation.IsFactorial);
+                MathExpression mathExpression = MathParser.Parse(subEquation.Expression, subEquation.Coefficient, subEquation.SuffixSymbols);
 
                 return mathExpression;
             }
@@ -159,13 +156,13 @@ namespace MathSolver.Converters
             {
                 VariableEquationPart variableEquation = (VariableEquationPart)expression;
 
-                return new VariableMathExpression(variableEquation.Variable, variableEquation.IsPercent, variableEquation.IsFactorial);
+                return new VariableMathExpression(variableEquation.Variable, variableEquation.SuffixSymbols);
             }
             else if (expression.Type == EquationType.Number)
             {
                 ConstantEquationPart constantEquation = (ConstantEquationPart)expression;
 
-                return new ConstantMathExpression(constantEquation.Number, constantEquation.IsPercent, constantEquation.IsFactorial);
+                return new ConstantMathExpression(constantEquation.Number, constantEquation.SuffixSymbols);
             }
             else if (expression.Type == EquationType.MathExpression)
             {

@@ -1,7 +1,4 @@
 ﻿using System.Globalization;
-using MathSolver.Enums;
-using MathSolver.Exceptions;
-using MathSolver.Models;
 
 namespace MathSolver.Converters
 {
@@ -116,12 +113,12 @@ namespace MathSolver.Converters
 
             EquationPart lastExpression = expressions[^1];
 
-            if (lastExpression.Type == EquationType.Symbol || lastExpression.IsPercent)
+            if (lastExpression.Type == EquationType.Symbol)
             {
                 throw new InvalidExpressionException($"The provided equation {equation} was not valid.");
             }
 
-            lastExpression.IsFactorial = true;
+            lastExpression.SuffixSymbols.Add(MathSuffixSymbol.Factorial);
 
             index++;
         }
@@ -135,12 +132,12 @@ namespace MathSolver.Converters
 
             EquationPart lastExpression = expressions[^1];
 
-            if (lastExpression.Type == EquationType.Symbol || lastExpression.IsPercent)
+            if (lastExpression.Type == EquationType.Symbol)
             {
                 throw new InvalidExpressionException($"The provided equation {equation} was not valid.");
             }
 
-            lastExpression.IsPercent = true;
+            lastExpression.SuffixSymbols.Add(MathSuffixSymbol.Percent);
 
             index++;
         }

@@ -5,5 +5,6 @@
         Constant,
         Unary,
         Variable,
+        Single,
     }
 }

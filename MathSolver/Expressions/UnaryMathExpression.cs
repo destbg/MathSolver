@@ -1,14 +1,9 @@
-﻿using MathSolver.Enums;
-using MathSolver.Exceptions;
-using MathSolver.Helpers;
-using MathSolver.Models;
-
-namespace MathSolver.Expressions
+﻿namespace MathSolver.Expressions
 {
     public class UnaryMathExpression : MathExpression
     {
-        public UnaryMathExpression(MathExpression leftOperand, MathExpression rightOperand, MathSymbol symbol)
-            : base(MathExpressionType.Unary)
+        public UnaryMathExpression(MathExpression leftOperand, MathExpression rightOperand, MathSymbol symbol, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
+            : base(MathExpressionType.Unary, suffixSymbols)
         {
             LeftOperand = leftOperand;
             RightOperand = rightOperand;
@@ -19,20 +14,23 @@ namespace MathSolver.Expressions
         public MathExpression RightOperand { get; }
         public MathSymbol Symbol { get; }
 
-        public string? Coefficient { get; set; }
+        public string? Coefficient { get; internal set; }
 
         public override double Solve(params MathVariable[] variables)
         {
             double leftNumber = LeftOperand.Solve(variables);
             double rightNumber = RightOperand.Solve(variables);
 
-            if (LeftOperand.IsPercent || RightOperand.IsPercent)
+            bool leftHasPercent = LeftOperand.SuffixSymbols.Count != 0 && LeftOperand.SuffixSymbols[^1] == MathSuffixSymbol.Percent;
+            bool rightHasPercent = RightOperand.SuffixSymbols.Count != 0 && RightOperand.SuffixSymbols[^1] == MathSuffixSymbol.Percent;
+
+            if (leftHasPercent || rightHasPercent)
             {
-                if (LeftOperand.IsPercent && RightOperand.IsPercent)
+                if (leftHasPercent && rightHasPercent)
                 {
                     rightNumber = FindPercent(leftNumber, rightNumber, Symbol);
                 }
-                else if (LeftOperand.IsPercent)
+                else if (leftHasPercent)
                 {
                     leftNumber = FindPercent(rightNumber, leftNumber, Symbol);
                 }
@@ -52,11 +50,19 @@ namespace MathSolver.Expressions
                 _ => throw new InvalidExpressionException($"The provided symbol {Symbol} was not valid."),
             };
 
-            result = MathHelper.CalculateNumberSuffix(result, IsPercent, IsFactorial);
+            foreach (MathSuffixSymbol suffixSymbol in SuffixSymbols)
+            {
+                result = suffixSymbol switch
+                {
+                    MathSuffixSymbol.Factorial => MathHelper.Factorial(result),
+                    MathSuffixSymbol.Percent => result / 100,
+                    _ => throw new Exception($"Internal exception: {nameof(Solve)} method does not implement {nameof(MathSuffixSymbol)}.")
+                };
+            }
 
             if (!string.IsNullOrEmpty(Coefficient))
             {
-                result = CalculateCoefficient(Coefficient, result);
+                result = MathHelper.CalculateCoefficient(Coefficient, result);
             }
 
             return result;
@@ -73,57 +79,6 @@ namespace MathSolver.Expressions
             {
                 MathSymbol.Addition or MathSymbol.Subraction => num * percent,
                 _ => percent,
-            };
-        }
-
-        private static double CalculateCoefficient(string coefficient, double num)
-        {
-            if (coefficient.StartsWith("log"))
-            {
-                if (coefficient == "log2")
-                {
-                    return Math.Log2(num);
-                }
-                else if (coefficient == "log10")
-                {
-                    return Math.Log10(num);
-                }
-
-                return Math.Log(num, int.Parse(coefficient.Replace("log", string.Empty)));
-            }
-
-            if (coefficient.StartsWith("sqrt"))
-            {
-                if (coefficient == "sqrt")
-                {
-                    return Math.Sqrt(num);
-                }
-
-                return Math.Pow(num, 1 / int.Parse(coefficient.Replace("sqrt", string.Empty)));
-            }
-
-            return coefficient switch
-            {
-                "abs" => Math.Abs(num),
-                "acos" => Math.Acos(num),
-                "acosh" => Math.Acosh(num),
-                "asin" => Math.Asin(num),
-                "asinh" => Math.Asinh(num),
-                "atan" => Math.Atan(num),
-                "atanh" => Math.Atanh(num),
-                "cbrt" => Math.Cbrt(num),
-                "ceil" => Math.Ceiling(num),
-                "cos" => Math.Cos(num),
-                "cosh" => Math.Cosh(num),
-                "floor" => Math.Floor(num),
-                "round" => Math.Round(num),
-                "sign" => Math.Sign(num),
-                "sin" => Math.Sin(num),
-                "sinh" => Math.Sinh(num),
-                "tan" => Math.Tan(num),
-                "tanh" => Math.Tanh(num),
-                "trunc" => Math.Truncate(num),
-                _ => throw new InvalidExpressionException($"The provided coefficient {coefficient} was not valid."),
             };
         }
     }

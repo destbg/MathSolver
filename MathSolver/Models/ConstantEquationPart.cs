@@ -1,11 +1,9 @@
-﻿using MathSolver.Enums;
-
-namespace MathSolver.Models
+﻿namespace MathSolver.Models
 {
     internal class ConstantEquationPart : EquationPart
     {
         public ConstantEquationPart(double number)
-            : base (EquationType.Number)
+            : base(EquationType.Number)
         {
             Number = number;
         }

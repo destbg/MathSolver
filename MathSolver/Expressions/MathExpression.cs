@@ -1,20 +1,22 @@
-﻿using MathSolver.Enums;
-using MathSolver.Models;
-
-namespace MathSolver.Expressions
+﻿namespace MathSolver.Expressions
 {
     public abstract class MathExpression
     {
-        public MathExpression(MathExpressionType type)
+        public MathExpression(MathExpressionType type, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
         {
             Type = type;
+            SuffixSymbols = suffixSymbols;
         }
 
         public MathExpressionType Type { get; }
 
-        public bool IsPercent { get; set; }
-        public bool IsFactorial { get; set; }
+        public IReadOnlyList<MathSuffixSymbol> SuffixSymbols { get; internal set; }
 
         public abstract double Solve(params MathVariable[] variables);
+
+        public override string ToString()
+        {
+            return Type + " not implemented.";
+        }
     }
 }

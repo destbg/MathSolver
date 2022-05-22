@@ -1,6 +1,4 @@
 ﻿using System.Text;
-using MathSolver.Enums;
-using MathSolver.Expressions;
 
 namespace MathSolver.Helpers
 {
@@ -24,19 +22,33 @@ namespace MathSolver.Helpers
                     builder = builder.Append(unaryExpression.Coefficient).Append(str);
                 }
             }
+            else if (expression is SingleMathExpression singleExpression && !string.IsNullOrEmpty(singleExpression.Coefficient))
+            {
+                if (useBrackets)
+                {
+                    builder = builder.Append(singleExpression.Coefficient)
+                        .Append('(')
+                        .Append(str)
+                        .Append(')');
+                }
+                else
+                {
+                    builder = builder.Append(singleExpression.Coefficient).Append(str);
+                }
+            }
             else
             {
                 builder = builder.Append(str);
             }
 
-            if (expression.IsFactorial)
+            foreach (MathSuffixSymbol suffixSymbol in expression.SuffixSymbols)
             {
-                builder = builder.Append('!');
-            }
-
-            if (expression.IsPercent)
-            {
-                builder = builder.Append('%');
+                builder = suffixSymbol switch
+                {
+                    MathSuffixSymbol.Factorial => builder.Append('!'),
+                    MathSuffixSymbol.Percent => builder.Append('%'),
+                    _ => throw new Exception($"Internal exception: {nameof(ExpressionSuffix)} method does not implement {nameof(MathSuffixSymbol)}.")
+                };
             }
 
             return builder.ToString();

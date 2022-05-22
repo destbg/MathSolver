@@ -1,7 +1,4 @@
-﻿using MathSolver.Enums;
-using MathSolver.Expressions;
-
-namespace MathSolver.Models
+﻿namespace MathSolver.Models
 {
     internal class ExpressionEquationPart : EquationPart
     {

@@ -1,18 +1,11 @@
-﻿using MathSolver.Enums;
-using MathSolver.Exceptions;
-using MathSolver.Helpers;
-using MathSolver.Models;
-
-namespace MathSolver.Expressions
+﻿namespace MathSolver.Expressions
 {
     public class VariableMathExpression : MathExpression
     {
-        public VariableMathExpression(char variable, bool isPercent, bool isFactorial)
-            : base(MathExpressionType.Variable)
+        public VariableMathExpression(char variable, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
+            : base(MathExpressionType.Variable, suffixSymbols)
         {
             Variable = variable;
-            IsPercent = isPercent;
-            IsFactorial = isFactorial;
         }
 
         public char Variable { get; }
@@ -23,7 +16,19 @@ namespace MathSolver.Expressions
             {
                 if (variable.Variable == Variable)
                 {
-                    return MathHelper.CalculateNumberSuffix(variable.Number, IsPercent, IsFactorial);
+                    double result = variable.Number;
+
+                    foreach (MathSuffixSymbol suffixSymbol in SuffixSymbols)
+                    {
+                        result = suffixSymbol switch
+                        {
+                            MathSuffixSymbol.Factorial => MathHelper.Factorial(result),
+                            MathSuffixSymbol.Percent => result / 100,
+                            _ => throw new Exception($"Internal exception: {nameof(Solve)} method does not implement {nameof(MathSuffixSymbol)}.")
+                        };
+                    }
+
+                    return result;
                 }
             }
 

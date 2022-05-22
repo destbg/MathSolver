@@ -1,8 +1,4 @@
 ﻿using System.Linq.Expressions;
-using MathSolver.Enums;
-using MathSolver.Exceptions;
-using MathSolver.Expressions;
-using MathSolver.Helpers;
 
 namespace MathSolver.Converters
 {
@@ -34,21 +30,19 @@ namespace MathSolver.Converters
                     string variableAsString = variableMath.Variable.ToString();
                     ParameterExpression parameter = Parameters.Find(f => f.Name == variableAsString)!;
 
-                    if (variableMath.IsPercent || variableMath.IsFactorial)
+                    Expression exp = parameter;
+
+                    foreach (MathSuffixSymbol suffixSymbol in variableMath.SuffixSymbols)
                     {
-                        return Expression.Call(
-                            typeof(MathHelper),
-                            nameof(MathHelper.CalculateNumberSuffix),
-                            null,
-                            parameter,
-                            Expression.Constant(variableMath.IsPercent),
-                            Expression.Constant(variableMath.IsFactorial)
-                        );
+                        exp = suffixSymbol switch
+                        {
+                            MathSuffixSymbol.Factorial => Expression.Call(typeof(MathHelper), nameof(MathHelper.Factorial), null, exp),
+                            MathSuffixSymbol.Percent => Expression.Divide(exp, Expression.Constant(100d)),
+                            _ => throw new Exception($"Internal exception: {nameof(ParseMathToCSharp)} method does not implement {nameof(MathSuffixSymbol)}.")
+                        };
                     }
-                    else
-                    {
-                        return parameter;
-                    }
+
+                    return exp;
                 }
                 case MathExpressionType.Constant:
                 {
@@ -60,21 +54,19 @@ namespace MathSolver.Converters
                     {
                         ConstantMathExpression constantMath = (ConstantMathExpression)mathExpression;
 
-                        if (constantMath.IsPercent || constantMath.IsFactorial)
+                        Expression exp = Expression.Constant(constantMath.Number);
+
+                        foreach (MathSuffixSymbol suffixSymbol in constantMath.SuffixSymbols)
                         {
-                            return Expression.Call(
-                                typeof(MathHelper),
-                                nameof(MathHelper.CalculateNumberSuffix),
-                                null,
-                                Expression.Constant(constantMath.Number),
-                                Expression.Constant(constantMath.IsPercent),
-                                Expression.Constant(constantMath.IsFactorial)
-                            );
+                            exp = suffixSymbol switch
+                            {
+                                MathSuffixSymbol.Factorial => Expression.Call(typeof(MathHelper), nameof(MathHelper.Factorial), null, exp),
+                                MathSuffixSymbol.Percent => Expression.Divide(exp, Expression.Constant(100d)),
+                                _ => throw new Exception($"Internal exception: {nameof(ParseMathToCSharp)} method does not implement {nameof(MathSuffixSymbol)}.")
+                            };
                         }
-                        else
-                        {
-                            return Expression.Constant(constantMath.Number);
-                        }
+
+                        return exp;
                     }
                 }
                 case MathExpressionType.Unary:
@@ -84,28 +76,51 @@ namespace MathSolver.Converters
                     Expression leftExpression = ParseMathToCSharp(unaryMath.LeftOperand);
                     Expression rightExpression = ParseMathToCSharp(unaryMath.RightOperand);
 
-                    Expression resultExpression = CreateEquation(unaryMath, leftExpression, rightExpression);
+                    Expression exp = CreateEquation(unaryMath, leftExpression, rightExpression);
 
-                    if (unaryMath.IsPercent || unaryMath.IsFactorial)
+                    foreach (MathSuffixSymbol suffixSymbol in unaryMath.SuffixSymbols)
                     {
-                        resultExpression = Expression.Call(
-                            typeof(MathHelper),
-                            nameof(MathHelper.CalculateNumberSuffix),
-                            null,
-                            resultExpression,
-                            Expression.Constant(unaryMath.IsPercent),
-                            Expression.Constant(unaryMath.IsFactorial)
-                        );
+                        exp = suffixSymbol switch
+                        {
+                            MathSuffixSymbol.Factorial => Expression.Call(typeof(MathHelper), nameof(MathHelper.Factorial), null, exp),
+                            MathSuffixSymbol.Percent => Expression.Divide(exp, Expression.Constant(100d)),
+                            _ => throw new Exception($"Internal exception: {nameof(ParseMathToCSharp)} method does not implement {nameof(MathSuffixSymbol)}.")
+                        };
                     }
 
                     if (!string.IsNullOrEmpty(unaryMath.Coefficient))
                     {
-                        (string method, Expression[] parameters) = CreateCoefficientCall(unaryMath.Coefficient, resultExpression);
+                        (string method, Expression[] parameters) = CreateCoefficientCall(unaryMath.Coefficient, exp);
 
-                        resultExpression = Expression.Call(typeof(Math), method, null, parameters);
+                        exp = Expression.Call(typeof(Math), method, null, parameters);
                     }
 
-                    return resultExpression;
+                    return exp;
+                }
+                case MathExpressionType.Single:
+                {
+                    SingleMathExpression singleMath = (SingleMathExpression)mathExpression;
+
+                    Expression exp = ParseMathToCSharp(singleMath.Operand);
+
+                    foreach (MathSuffixSymbol suffixSymbol in singleMath.SuffixSymbols)
+                    {
+                        exp = suffixSymbol switch
+                        {
+                            MathSuffixSymbol.Factorial => Expression.Call(typeof(MathHelper), nameof(MathHelper.Factorial), null, exp),
+                            MathSuffixSymbol.Percent => Expression.Divide(exp, Expression.Constant(100d)),
+                            _ => throw new Exception($"Internal exception: {nameof(ParseMathToCSharp)} method does not implement {nameof(MathSuffixSymbol)}.")
+                        };
+                    }
+
+                    if (!string.IsNullOrEmpty(singleMath.Coefficient))
+                    {
+                        (string method, Expression[] parameters) = CreateCoefficientCall(singleMath.Coefficient, exp);
+
+                        exp = Expression.Call(typeof(Math), method, null, parameters);
+                    }
+
+                    return exp;
                 }
                 default:
                     throw new Exception($"Internal Exception: The {nameof(ParseMathToCSharp)} method did not have a {nameof(MathExpressionType)} implemented.");
@@ -114,9 +129,12 @@ namespace MathSolver.Converters
 
         private static Expression CreateEquation(UnaryMathExpression unaryMath, Expression leftExpression, Expression rightExpression)
         {
-            if (unaryMath.LeftOperand.IsPercent || unaryMath.RightOperand.IsPercent)
+            bool leftHasPercent = unaryMath.LeftOperand.SuffixSymbols.Count != 0 && unaryMath.LeftOperand.SuffixSymbols[^1] == MathSuffixSymbol.Percent;
+            bool rightHasPercent = unaryMath.RightOperand.SuffixSymbols.Count != 0 && unaryMath.RightOperand.SuffixSymbols[^1] == MathSuffixSymbol.Percent;
+
+            if (leftHasPercent || rightHasPercent)
             {
-                if (unaryMath.LeftOperand.IsPercent && !unaryMath.RightOperand.IsPercent)
+                if (leftHasPercent && !rightHasPercent)
                 {
                     (leftExpression, rightExpression) = (rightExpression, leftExpression);
                 }
@@ -165,7 +183,7 @@ namespace MathSolver.Converters
                     return (nameof(Math.Sqrt), new[] { expression });
                 }
 
-                ConstantExpression nthRoot = Expression.Constant(int.Parse(coefficient.Replace("sqrt", string.Empty)));
+                ConstantExpression nthRoot = Expression.Constant((double)int.Parse(coefficient.Replace("sqrt", string.Empty)));
                 BinaryExpression division = Expression.Divide(Expression.Constant(1d), nthRoot);
 
                 return (nameof(Math.Pow), new[] { expression, division });
@@ -225,12 +243,20 @@ namespace MathSolver.Converters
                         return rightVariables;
                     }
 
-                    goto default;
+                    return null;
+                }
+                case MathExpressionType.Single:
+                {
+                    SingleMathExpression singleExpression = (SingleMathExpression)expression;
+
+                    return VariableFinder(singleExpression.Operand);
                 }
                 case MathExpressionType.Variable:
                     return new HashSet<char> { ((VariableMathExpression)expression).Variable };
-                default:
+                case MathExpressionType.Constant:
                     return null;
+                default:
+                    throw new Exception($"Internal exception: {nameof(VariableFinder)} does not implement {nameof(MathExpressionType)}.");
             }
         }
     }

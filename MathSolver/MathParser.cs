@@ -1,8 +1,4 @@
 ﻿using System.Linq.Expressions;
-using MathSolver.Converters;
-using MathSolver.Enums;
-using MathSolver.Expressions;
-using MathSolver.Models;
 
 namespace MathSolver
 {
@@ -10,7 +6,7 @@ namespace MathSolver
     {
         public static MathExpression Parse(string equation)
         {
-            return Parse(equation, null, false, false);
+            return Parse(equation, null, new List<MathSuffixSymbol>());
         }
 
         public static MathExpression Simplify(MathExpression expression)
@@ -23,7 +19,7 @@ namespace MathSolver
                 }
                 case MathExpressionType.Constant:
                 {
-                    return new SolvedConstantMathExpression(expression.Solve(), expression.IsPercent, expression.IsFactorial);
+                    return new SolvedConstantMathExpression(expression.Solve(), expression.SuffixSymbols);
                 }
                 case MathExpressionType.Unary:
                 {
@@ -32,16 +28,34 @@ namespace MathSolver
                     MathExpression leftOperand = Simplify(unaryExpression.LeftOperand);
                     MathExpression rightOperand = Simplify(unaryExpression.RightOperand);
 
-                    UnaryMathExpression newExpression = new(leftOperand, rightOperand, unaryExpression.Symbol)
+                    UnaryMathExpression newExpression = new(leftOperand, rightOperand, unaryExpression.Symbol, unaryExpression.SuffixSymbols)
                     {
                         Coefficient = unaryExpression.Coefficient,
-                        IsFactorial = unaryExpression.IsFactorial,
-                        IsPercent = unaryExpression.IsPercent
                     };
 
                     if (leftOperand.Type == MathExpressionType.Constant && rightOperand.Type == MathExpressionType.Constant)
                     {
-                        return new ConstantMathExpression(newExpression.Solve(), false, false);
+                        return new SolvedConstantMathExpression(newExpression.Solve(), unaryExpression.SuffixSymbols);
+                    }
+                    else
+                    {
+                        return newExpression;
+                    }
+                }
+                case MathExpressionType.Single:
+                {
+                    SingleMathExpression singleExpression = (SingleMathExpression)expression;
+
+                    MathExpression operand = Simplify(singleExpression.Operand);
+
+                    SingleMathExpression newExpression = new(operand, singleExpression.SuffixSymbols)
+                    {
+                        Coefficient = singleExpression.Coefficient,
+                    };
+
+                    if (operand.Type == MathExpressionType.Constant)
+                    {
+                        return new SolvedConstantMathExpression(newExpression.Solve(), singleExpression.SuffixSymbols);
                     }
                     else
                     {
@@ -60,13 +74,13 @@ namespace MathSolver
             return (mathExpressionToExpressionConverter.Convert(), mathExpressionToExpressionConverter.Parameters);
         }
 
-        internal static MathExpression Parse(string equation, string? coefficient, bool isPercent, bool isFactorial)
+        internal static MathExpression Parse(string equation, string? coefficient, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
         {
             TextToEquationConverter parser = new(equation);
 
             List<EquationPart> expressions = parser.Convert();
 
-            EquationToMathExpressionConveter converter = new(equation, expressions, coefficient, isPercent, isFactorial);
+            EquationToMathExpressionConveter converter = new(equation, expressions, coefficient, suffixSymbols);
 
             return converter.Convert();
         }

@@ -1,17 +1,15 @@
-﻿using MathSolver.Enums;
-
-namespace MathSolver.Models
+﻿namespace MathSolver.Models
 {
     internal abstract class EquationPart
     {
         public EquationPart(EquationType type)
         {
             Type = type;
+            SuffixSymbols = new List<MathSuffixSymbol>();
         }
 
         public EquationType Type { get; }
 
-        public bool IsPercent { get; set; }
-        public bool IsFactorial { get; set; }
+        public List<MathSuffixSymbol> SuffixSymbols { get; }
     }
 }

@@ -1,18 +1,20 @@
 ﻿namespace MathSolver.Expressions
 {
-    public class ConstantMathExpression : MathExpression
+    public class SingleMathExpression : MathExpression
     {
-        public ConstantMathExpression(double number, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
-            : base(MathExpressionType.Constant, suffixSymbols)
+        public SingleMathExpression(MathExpression operand, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
+            : base(MathExpressionType.Single, suffixSymbols)
         {
-            Number = number;
+            Operand = operand;
         }
 
-        public double Number { get; }
+        public MathExpression Operand { get; }
+
+        public string? Coefficient { get; internal set; }
 
         public override double Solve(params MathVariable[] variables)
         {
-            double result = Number;
+            double result = Operand.Solve(variables);
 
             foreach (MathSuffixSymbol suffixSymbol in SuffixSymbols)
             {
@@ -24,12 +26,17 @@
                 };
             }
 
+            if (!string.IsNullOrEmpty(Coefficient))
+            {
+                result = MathHelper.CalculateCoefficient(Coefficient, result);
+            }
+
             return result;
         }
 
         public override string ToString()
         {
-            return ToStringHelper.ExpressionSuffix(Number.ToString(), this);
+            return ToStringHelper.ExpressionSuffix($"({Operand})", this, false);
         }
     }
 }

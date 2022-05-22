@@ -1,11 +1,9 @@
-﻿using MathSolver.Models;
-
-namespace MathSolver.Expressions
+﻿namespace MathSolver.Expressions
 {
     public class SolvedConstantMathExpression : ConstantMathExpression
     {
-        public SolvedConstantMathExpression(double number, bool isPercent, bool isFactorial)
-            : base(number, isPercent, isFactorial) { }
+        public SolvedConstantMathExpression(double number, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
+            : base(number, suffixSymbols) { }
 
         public override double Solve(params MathVariable[] variables)
         {
@@ -14,11 +12,6 @@ namespace MathSolver.Expressions
 
         public override string ToString()
         {
-            if (IsPercent)
-            {
-                return (Number * 100).ToString() + '%';
-            }
-
             return Number.ToString();
         }
     }
