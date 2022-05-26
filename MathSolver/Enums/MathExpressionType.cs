@@ -6,5 +6,6 @@
         Unary,
         Variable,
         Single,
+        Condition,
     }
 }

@@ -168,6 +168,18 @@ namespace MathSolver.Converters
 
                 return new ConstantMathExpression(constantEquation.Number, constantEquation.SuffixSymbols);
             }
+            else if (expression.Type == EquationType.Condition)
+            {
+                ConditionEquationPart conditionEquation = (ConditionEquationPart)expression;
+
+                MathExpression leftMathExpression = ConvertExpression(conditionEquation.LeftCheck);
+                MathExpression rightMathExpression = MathParser.Parse(conditionEquation.RightCheck);
+
+                MathExpression ifTrueMathExpression = MathParser.Parse(conditionEquation.IfTrue);
+                MathExpression ifFalseMathExpression = MathParser.Parse(conditionEquation.IfFalse);
+
+                return new ConditionMathExpression(leftMathExpression, rightMathExpression, ifTrueMathExpression, ifFalseMathExpression);
+            }
             else if (expression.Type == EquationType.MathExpression)
             {
                 return ((ExpressionEquationPart)expression).MathExpression;

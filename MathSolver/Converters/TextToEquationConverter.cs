@@ -20,6 +20,7 @@ namespace MathSolver.Converters
                 new SymbolTextConverter(),
                 new FactorialTextConverter(),
                 new PercentageTextConverter(),
+                new ConditionTextConverter(),
                 new VariableOrCoefficientTextConverter(),
                 new BracketTextConverter(),
                 new WhiteSpaceTextConverter(),

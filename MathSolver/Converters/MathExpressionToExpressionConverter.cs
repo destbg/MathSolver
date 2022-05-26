@@ -10,6 +10,7 @@ namespace MathSolver.Converters
 {
     internal class MathExpressionToExpressionConverter
     {
+        private readonly ConditionExpressionConverter conditionExpressionConverter;
         private readonly ConstantExpressionConverter constantExpressionConverter;
         private readonly SingleExpressionConverter singleExpressionConverter;
         private readonly UnaryExpressionConverter unaryExpressionConverter;
@@ -20,6 +21,7 @@ namespace MathSolver.Converters
             Parameters = (VariableFinder(mathExpression)?.ToList() ?? new List<char>())
                 .ConvertAll(f => Expression.Parameter(typeof(double), f.ToString()));
 
+            conditionExpressionConverter = new ConditionExpressionConverter(Convert);
             constantExpressionConverter = new ConstantExpressionConverter();
             singleExpressionConverter = new SingleExpressionConverter(Parameters, Convert);
             unaryExpressionConverter = new UnaryExpressionConverter(Parameters, Convert);
@@ -32,6 +34,7 @@ namespace MathSolver.Converters
         {
             return mathExpression.Type switch
             {
+                MathExpressionType.Condition => conditionExpressionConverter.Convert(mathExpression),
                 MathExpressionType.Constant => constantExpressionConverter.Convert(mathExpression),
                 MathExpressionType.Unary => unaryExpressionConverter.Convert(mathExpression),
                 MathExpressionType.Variable => variableExpressionConverter.Convert(mathExpression),
@@ -44,6 +47,31 @@ namespace MathSolver.Converters
         {
             switch (expression.Type)
             {
+                case MathExpressionType.Condition:
+                {
+                    ConditionMathExpression conditionExpression = (ConditionMathExpression)expression;
+
+                    HashSet<char> leftVariables = VariableFinder(conditionExpression.LeftCheck) ?? new HashSet<char>();
+                    HashSet<char> rightVariables = VariableFinder(conditionExpression.RightCheck) ?? new HashSet<char>();
+
+                    HashSet<char> ifTrueVariables = VariableFinder(conditionExpression.IfTrue) ?? new HashSet<char>();
+                    HashSet<char> ifFalseVariables = VariableFinder(conditionExpression.IfFalse) ?? new HashSet<char>();
+
+                    foreach (char item in rightVariables)
+                    {
+                        _ = leftVariables.Add(item);
+                    }
+                    foreach (char item in ifTrueVariables)
+                    {
+                        _ = leftVariables.Add(item);
+                    }
+                    foreach (char item in ifFalseVariables)
+                    {
+                        _ = leftVariables.Add(item);
+                    }
+
+                    return leftVariables.Count == 0 ? null : leftVariables;
+                }
                 case MathExpressionType.Unary:
                 {
                     UnaryMathExpression unaryExpression = (UnaryMathExpression)expression;

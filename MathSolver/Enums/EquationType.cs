@@ -7,5 +7,7 @@
         Expression,
         Symbol,
         MathExpression,
+        Condition,
+        Coalesce,
     }
 }

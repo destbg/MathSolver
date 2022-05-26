@@ -19,6 +19,28 @@ namespace MathSolver
         {
             switch (expression.Type)
             {
+                case MathExpressionType.Condition:
+                {
+                    ConditionMathExpression conditionExpression = (ConditionMathExpression)expression;
+
+                    MathExpression leftExpression = Simplify(conditionExpression.LeftCheck);
+                    MathExpression rightExpression = Simplify(conditionExpression.RightCheck);
+
+                    MathExpression ifTrueExpression = Simplify(conditionExpression.IfTrue);
+                    MathExpression ifFalseExpression = Simplify(conditionExpression.IfFalse);
+
+                    ConditionMathExpression newExpression = new ConditionMathExpression(leftExpression, rightExpression, ifTrueExpression, ifFalseExpression);
+
+                    if (leftExpression.Type == MathExpressionType.Constant && rightExpression.Type == MathExpressionType.Constant
+                        && ifTrueExpression.Type == MathExpressionType.Constant && ifFalseExpression.Type == MathExpressionType.Constant)
+                    {
+                        return new SolvedConstantMathExpression(newExpression.Solve(), conditionExpression.SuffixSymbols);
+                    }
+                    else
+                    {
+                        return newExpression;
+                    }
+                }
                 case MathExpressionType.Variable:
                 {
                     return expression;
@@ -71,7 +93,7 @@ namespace MathSolver
         {
             MathExpressionToExpressionConverter mathExpressionToExpressionConverter = new MathExpressionToExpressionConverter(mathExpression);
 
-            return (mathExpressionToExpressionConverter.Convert(), mathExpressionToExpressionConverter.Parameters);
+            return (mathExpressionToExpressionConverter.Convert(mathExpression), mathExpressionToExpressionConverter.Parameters);
         }
 
         internal static MathExpression Parse(string equation, string? coefficient, BracketType bracketType, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
