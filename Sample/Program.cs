@@ -8,7 +8,7 @@ Console.WriteLine("Declare variables that you can later use to play with.");
 Console.Write("Variables (x=10) = ");
 string variables = Console.ReadLine()!;
 
-MathVariable[] mathVariables = variables.Split(' ')
+MathVariable[] mathVariables = variables.Length == 0 ? new[] { new MathVariable('x', 10d) } : variables.Split(' ')
     .Select(f =>
     {
         string[] split = f.Split('=');

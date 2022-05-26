@@ -4,7 +4,7 @@ using MathSolver.Exceptions;
 
 namespace MathSolver.Helpers
 {
-    internal static class MathHelper
+    public static class MathHelper
     {
         public static double CalculateCoefficient(string coefficient, double num)
         {
