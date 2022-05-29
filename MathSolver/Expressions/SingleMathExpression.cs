@@ -42,7 +42,7 @@ namespace MathSolver.Expressions
 
             if (!string.IsNullOrEmpty(Coefficient))
             {
-                result = MathHelper.CalculateCoefficient(Coefficient, result);
+                result = MathHelper.Coefficient(Coefficient, result);
             }
 
             return result;

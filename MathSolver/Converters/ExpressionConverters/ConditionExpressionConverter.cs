@@ -24,7 +24,9 @@ namespace MathSolver.Converters.ExpressionConverters
             Expression ifFalseExpression = convert(conditionMath.IfFalse);
 
             return Expression.Condition(
-                Expression.Equal(leftExpression, rightExpression),
+                conditionMath.IsEqual
+                    ? Expression.Equal(leftExpression, rightExpression)
+                    : Expression.NotEqual(leftExpression, rightExpression),
                 ifTrueExpression,
                 ifFalseExpression
             );

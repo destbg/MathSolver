@@ -8,6 +8,5 @@
         Symbol,
         MathExpression,
         Condition,
-        Coalesce,
     }
 }

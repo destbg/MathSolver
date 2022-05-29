@@ -8,15 +8,13 @@ namespace MathSolver.Converters
 {
     internal class EquationToMathExpressionConveter
     {
-        private readonly string equation;
         private readonly string? coefficient;
         private readonly BracketType bracketType;
         private readonly IReadOnlyList<MathSuffixSymbol> suffixSymbols;
         private readonly List<EquationPart> expressions;
 
-        public EquationToMathExpressionConveter(string equation, List<EquationPart> expressions, string? coefficient, BracketType bracketType, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
+        public EquationToMathExpressionConveter(List<EquationPart> expressions, string? coefficient, BracketType bracketType, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
         {
-            this.equation = equation;
             this.expressions = expressions;
             this.coefficient = coefficient;
             this.bracketType = bracketType;
@@ -27,6 +25,40 @@ namespace MathSolver.Converters
         {
             InsertForSymbol(0, 0);
             InsertForSymbol(expressions.Count - 1, expressions.Count);
+
+            (ConditionType equalConditionType, int equalConditionIndex) = IndexOfEqualCondition();
+
+            if (equalConditionIndex != -1)
+            {
+                int ifTrueConditionIndex = IndexOfTrueCondition(equalConditionIndex + 1);
+
+                if (equalConditionIndex == -1)
+                {
+                    throw new InvalidMathExpressionException("The provided equation was not valid.");
+                }
+
+                int ifFalseConditionIndex = IndexOfFalseCondition(ifTrueConditionIndex + 1);
+
+                if (ifFalseConditionIndex == -1)
+                {
+                    throw new InvalidMathExpressionException("The provided equation was not valid.");
+                }
+
+                List<EquationPart> leftCheckExpressions = expressions.GetRange(0, equalConditionIndex);
+                List<EquationPart> rightCheckExpressions = expressions.GetRange(equalConditionIndex + 1, ifTrueConditionIndex - equalConditionIndex - 1);
+                List<EquationPart> ifTrueExpressions = expressions.GetRange(ifTrueConditionIndex + 1, ifFalseConditionIndex - ifTrueConditionIndex - 1);
+                List<EquationPart> ifFalseExpressions = expressions.GetRange(ifFalseConditionIndex + 1, expressions.Count - ifFalseConditionIndex - 1);
+
+                MathExpression leftCheck = MathParser.Parse(leftCheckExpressions);
+                MathExpression rightCheck = MathParser.Parse(rightCheckExpressions);
+                MathExpression ifTrue = MathParser.Parse(ifTrueExpressions);
+                MathExpression ifFalse = MathParser.Parse(ifFalseExpressions);
+
+                ConditionMathExpression expression = new ConditionMathExpression(equalConditionType == ConditionType.Equal, leftCheck, rightCheck, ifTrue, ifFalse);
+
+                return new SingleMathExpression(expression, bracketType, suffixSymbols, coefficient);
+            }
+
             CheckIfValidEquation();
 
             int expressionIndex = IndexOfImportantSymbol();
@@ -62,7 +94,7 @@ namespace MathSolver.Converters
         {
             if (expressions.Count % 2 == 0)
             {
-                throw new InvalidMathExpressionException($"The provided equation {equation} was not valid.");
+                throw new InvalidMathExpressionException("The provided equation was not valid.");
             }
 
             bool atSymbol = false;
@@ -81,7 +113,7 @@ namespace MathSolver.Converters
                 }
                 else
                 {
-                    throw new InvalidMathExpressionException($"The provided equation {equation} was not valid.");
+                    throw new InvalidMathExpressionException("The provided equation was not valid.");
                 }
             }
         }
@@ -100,7 +132,7 @@ namespace MathSolver.Converters
                 }
                 else
                 {
-                    throw new InvalidMathExpressionException($"The equation {equation} cannot start or end with a multiplication, division or power symbol.");
+                    throw new InvalidMathExpressionException("The equation cannot start or end with a multiplication, division or power symbol.");
                 }
             }
         }
@@ -118,6 +150,92 @@ namespace MathSolver.Converters
                     if (symbol != MathSymbol.Addition && symbol != MathSymbol.Subraction)
                     {
                         return i;
+                    }
+                }
+            }
+
+            return -1;
+        }
+
+        private (ConditionType, int) IndexOfEqualCondition()
+        {
+            for (int i = 0; i < expressions.Count; i++)
+            {
+                EquationPart expression = expressions[i];
+
+                if (expression.Type == EquationType.Condition)
+                {
+                    ConditionType condition = ((ConditionEquationPart)expression).Condition;
+
+                    if (condition == ConditionType.Equal || condition == ConditionType.NotEqual)
+                    {
+                        return (condition, i);
+                    }
+                }
+            }
+
+            return (ConditionType.Equal, -1);
+        }
+
+        private int IndexOfTrueCondition(int i)
+        {
+            int innerConditionsCount = 0;
+
+            for (; i < expressions.Count; i++)
+            {
+                EquationPart expression = expressions[i];
+
+                if (expression.Type == EquationType.Condition)
+                {
+                    ConditionType condition = ((ConditionEquationPart)expression).Condition;
+
+                    switch (condition)
+                    {
+                        case ConditionType.Equal:
+                            innerConditionsCount++;
+                            break;
+                        case ConditionType.True:
+                            if (innerConditionsCount == 0)
+                            {
+                                return i;
+                            }
+
+                            break;
+                        case ConditionType.False:
+                            innerConditionsCount--;
+                            break;
+                    }
+                }
+            }
+
+            return -1;
+        }
+
+        private int IndexOfFalseCondition(int i)
+        {
+            int innerConditionsCount = 0;
+
+            for (; i < expressions.Count; i++)
+            {
+                EquationPart expression = expressions[i];
+
+                if (expression.Type == EquationType.Condition)
+                {
+                    ConditionType condition = ((ConditionEquationPart)expression).Condition;
+
+                    switch (condition)
+                    {
+                        case ConditionType.Equal:
+                            innerConditionsCount++;
+                            break;
+                        case ConditionType.False:
+                            if (innerConditionsCount == 0)
+                            {
+                                return i;
+                            }
+
+                            innerConditionsCount--;
+                            break;
                     }
                 }
             }
@@ -148,44 +266,38 @@ namespace MathSolver.Converters
 
         private MathExpression ConvertExpression(EquationPart expression)
         {
-            if (expression.Type == EquationType.Expression)
+            switch (expression.Type)
             {
-                SubEquationPart subEquation = (SubEquationPart)expression;
+                case EquationType.Number:
+                {
+                    ConstantEquationPart constantEquation = (ConstantEquationPart)expression;
 
-                MathExpression mathExpression = MathParser.Parse(subEquation.Expression, subEquation.Coefficient, subEquation.Bracket, subEquation.SuffixSymbols);
+                    return new ConstantMathExpression(constantEquation.Number, constantEquation.SuffixSymbols);
+                }
+                case EquationType.Variable:
+                {
+                    VariableEquationPart variableEquation = (VariableEquationPart)expression;
 
-                return mathExpression;
+                    return new VariableMathExpression(variableEquation.Variable, variableEquation.SuffixSymbols);
+                }
+                case EquationType.Expression:
+                {
+                    SubEquationPart subEquation = (SubEquationPart)expression;
+
+                    MathExpression mathExpression = MathParser.Parse(subEquation.Expression, subEquation.Coefficient, subEquation.Bracket, subEquation.SuffixSymbols);
+
+                    return mathExpression;
+                }
+                case EquationType.MathExpression:
+                {
+                    return ((ExpressionEquationPart)expression).MathExpression;
+                }
+                // Should never enter as these
+                // case EquationType.Symbol:
+                // case EquationType.Condition:
+                default:
+                    throw new InvalidMathExpressionException("The provided equation was not valid.");
             }
-            else if (expression.Type == EquationType.Variable)
-            {
-                VariableEquationPart variableEquation = (VariableEquationPart)expression;
-
-                return new VariableMathExpression(variableEquation.Variable, variableEquation.SuffixSymbols);
-            }
-            else if (expression.Type == EquationType.Number)
-            {
-                ConstantEquationPart constantEquation = (ConstantEquationPart)expression;
-
-                return new ConstantMathExpression(constantEquation.Number, constantEquation.SuffixSymbols);
-            }
-            else if (expression.Type == EquationType.Condition)
-            {
-                ConditionEquationPart conditionEquation = (ConditionEquationPart)expression;
-
-                MathExpression leftMathExpression = ConvertExpression(conditionEquation.LeftCheck);
-                MathExpression rightMathExpression = MathParser.Parse(conditionEquation.RightCheck);
-
-                MathExpression ifTrueMathExpression = MathParser.Parse(conditionEquation.IfTrue);
-                MathExpression ifFalseMathExpression = MathParser.Parse(conditionEquation.IfFalse);
-
-                return new ConditionMathExpression(leftMathExpression, rightMathExpression, ifTrueMathExpression, ifFalseMathExpression);
-            }
-            else if (expression.Type == EquationType.MathExpression)
-            {
-                return ((ExpressionEquationPart)expression).MathExpression;
-            }
-
-            throw new InvalidMathExpressionException($"The provided equation {equation} was not valid.");
         }
     }
 }

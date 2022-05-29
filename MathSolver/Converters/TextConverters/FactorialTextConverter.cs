@@ -8,7 +8,7 @@ namespace MathSolver.Converters.TextConverters
     {
         public override bool IsValid(TextConverterModel model)
         {
-            return model.Current == '!';
+            return model.Current == '!' && (model.Length == model.Index + 1 || model.Equation[model.Index + 1] != '=');
         }
 
         public override void Convert(TextConverterModel model)

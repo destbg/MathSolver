@@ -29,7 +29,7 @@ namespace MathSolver
                     MathExpression ifTrueExpression = Simplify(conditionExpression.IfTrue);
                     MathExpression ifFalseExpression = Simplify(conditionExpression.IfFalse);
 
-                    ConditionMathExpression newExpression = new ConditionMathExpression(leftExpression, rightExpression, ifTrueExpression, ifFalseExpression);
+                    ConditionMathExpression newExpression = new ConditionMathExpression(conditionExpression.IsEqual, leftExpression, rightExpression, ifTrueExpression, ifFalseExpression);
 
                     if (leftExpression.Type == MathExpressionType.Constant && rightExpression.Type == MathExpressionType.Constant
                         && ifTrueExpression.Type == MathExpressionType.Constant && ifFalseExpression.Type == MathExpressionType.Constant)
@@ -102,7 +102,14 @@ namespace MathSolver
 
             List<EquationPart> expressions = parser.Convert();
 
-            EquationToMathExpressionConveter converter = new EquationToMathExpressionConveter(equation, expressions, coefficient, bracketType, suffixSymbols);
+            EquationToMathExpressionConveter converter = new EquationToMathExpressionConveter(expressions, coefficient, bracketType, suffixSymbols);
+
+            return converter.Convert();
+        }
+
+        internal static MathExpression Parse(List<EquationPart> expressions)
+        {
+            EquationToMathExpressionConveter converter = new EquationToMathExpressionConveter(expressions, null, BracketType.None, new List<MathSuffixSymbol>());
 
             return converter.Convert();
         }
