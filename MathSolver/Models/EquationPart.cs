@@ -1,18 +1,17 @@
 ﻿using System.Collections.Generic;
 using MathSolver.Enums;
 
-namespace MathSolver.Models
+namespace MathSolver.Models;
+
+internal abstract class EquationPart
 {
-    internal abstract class EquationPart
+    public EquationPart(EquationType type)
     {
-        public EquationPart(EquationType type)
-        {
-            Type = type;
-            SuffixSymbols = new List<MathSuffixSymbol>();
-        }
-
-        public EquationType Type { get; }
-
-        public List<MathSuffixSymbol> SuffixSymbols { get; }
+        Type = type;
+        SuffixSymbols = [];
     }
+
+    public EquationType Type { get; }
+
+    public List<MathSuffixSymbol> SuffixSymbols { get; }
 }

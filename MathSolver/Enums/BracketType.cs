@@ -1,12 +1,11 @@
-﻿namespace MathSolver.Enums
+﻿namespace MathSolver.Enums;
+
+public enum BracketType
 {
-    public enum BracketType
-    {
-        None,
-        Parentheses,
-        Square,
-        Angle,
-        Curly,
-        Straight,
-    }
+    None,
+    Parentheses,
+    Square,
+    Angle,
+    Curly,
+    Straight,
 }

@@ -1,10 +1,9 @@
-﻿namespace MathSolver.Enums
+﻿namespace MathSolver.Enums;
+
+internal enum ConditionType
 {
-    internal enum ConditionType
-    {
-        Equal,
-        NotEqual,
-        True,
-        False
-    }
+    Equal,
+    NotEqual,
+    True,
+    False
 }

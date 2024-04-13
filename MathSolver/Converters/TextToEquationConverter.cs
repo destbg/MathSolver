@@ -3,57 +3,56 @@ using MathSolver.Converters.TextConverters;
 using MathSolver.Exceptions;
 using MathSolver.Models;
 
-namespace MathSolver.Converters
+namespace MathSolver.Converters;
+
+internal class TextToEquationConverter
 {
-    internal class TextToEquationConverter
+    private readonly TextConverterModel converterModel;
+    private readonly BaseTextConverter[] converters;
+
+    public TextToEquationConverter(string equation)
     {
-        private readonly TextConverterModel converterModel;
-        private readonly BaseTextConverter[] converters;
+        converterModel = new TextConverterModel(equation.Trim() + ' ');
 
-        public TextToEquationConverter(string equation)
+        converters = new BaseTextConverter[]
         {
-            converterModel = new TextConverterModel(equation.Trim() + ' ');
+            new NumberTextConverter(),
+            new SymbolTextConverter(),
+            new FactorialTextConverter(),
+            new PercentageTextConverter(),
+            new ConditionTextConverter(),
+            new VariableOrCoefficientTextConverter(),
+            new BracketTextConverter(),
+            new WhiteSpaceTextConverter(),
+        };
+    }
 
-            converters = new BaseTextConverter[]
-            {
-                new NumberTextConverter(),
-                new SymbolTextConverter(),
-                new FactorialTextConverter(),
-                new PercentageTextConverter(),
-                new ConditionTextConverter(),
-                new VariableOrCoefficientTextConverter(),
-                new BracketTextConverter(),
-                new WhiteSpaceTextConverter(),
-            };
-        }
+    public List<EquationPart> Convert()
+    {
+        int length = converters.Length;
 
-        public List<EquationPart> Convert()
+        while (converterModel.Index < converterModel.Length)
         {
-            int length = converters.Length;
+            bool wasConverted = false;
 
-            while (converterModel.Index < converterModel.Length)
+            for (int i = 0; i < length; i++)
             {
-                bool wasConverted = false;
+                BaseTextConverter converter = converters[i];
 
-                for (int i = 0; i < length; i++)
+                if (converter.IsValid(converterModel))
                 {
-                    BaseTextConverter converter = converters[i];
-
-                    if (converter.IsValid(converterModel))
-                    {
-                        converter.Convert(converterModel);
-                        wasConverted = true;
-                        break;
-                    }
-                }
-
-                if (!wasConverted)
-                {
-                    throw new InvalidMathExpressionException($"The provided letter {converterModel.Current} was not valid.");
+                    converter.Convert(converterModel);
+                    wasConverted = true;
+                    break;
                 }
             }
 
-            return converterModel.Parts;
+            if (!wasConverted)
+            {
+                throw new InvalidMathExpressionException($"The provided letter {converterModel.Current} was not valid.");
+            }
         }
+
+        return converterModel.Parts;
     }
 }

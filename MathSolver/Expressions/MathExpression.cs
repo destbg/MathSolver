@@ -2,25 +2,24 @@
 using MathSolver.Enums;
 using MathSolver.Models;
 
-namespace MathSolver.Expressions
+namespace MathSolver.Expressions;
+
+public abstract class MathExpression
 {
-    public abstract class MathExpression
+    public MathExpression(MathExpressionType type, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
     {
-        public MathExpression(MathExpressionType type, IReadOnlyList<MathSuffixSymbol> suffixSymbols)
-        {
-            Type = type;
-            SuffixSymbols = suffixSymbols;
-        }
+        Type = type;
+        SuffixSymbols = suffixSymbols;
+    }
 
-        public MathExpressionType Type { get; }
+    public MathExpressionType Type { get; }
 
-        public IReadOnlyList<MathSuffixSymbol> SuffixSymbols { get; }
+    public IReadOnlyList<MathSuffixSymbol> SuffixSymbols { get; }
 
-        public abstract double Solve(params MathVariable[] variables);
+    public abstract double Solve(params MathVariable[] variables);
 
-        public override string ToString()
-        {
-            return Type + " not implemented.";
-        }
+    public override string ToString()
+    {
+        return Type + " not implemented.";
     }
 }

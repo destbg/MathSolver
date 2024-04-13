@@ -1,15 +1,14 @@
 ﻿using MathSolver.Enums;
 
-namespace MathSolver.Models
-{
-    internal class SymbolEquationPart : EquationPart
-    {
-        public SymbolEquationPart(MathSymbol symbol)
-            : base(EquationType.Symbol)
-        {
-            Symbol = symbol;
-        }
+namespace MathSolver.Models;
 
-        public MathSymbol Symbol { get; }
+internal class SymbolEquationPart : EquationPart
+{
+    public SymbolEquationPart(MathSymbol symbol)
+        : base(EquationType.Symbol)
+    {
+        Symbol = symbol;
     }
+
+    public MathSymbol Symbol { get; }
 }

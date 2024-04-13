@@ -1,11 +1,10 @@
-﻿namespace MathSolver.Enums
+﻿namespace MathSolver.Enums;
+
+public enum MathExpressionType
 {
-    public enum MathExpressionType
-    {
-        Constant,
-        Unary,
-        Variable,
-        Single,
-        Condition,
-    }
+    Constant,
+    Unary,
+    Variable,
+    Single,
+    Condition,
 }

@@ -1,8 +1,7 @@
-﻿namespace MathSolver.Enums
+﻿namespace MathSolver.Enums;
+
+public enum MathSuffixSymbol
 {
-    public enum MathSuffixSymbol
-    {
-        Percent,
-        Factorial
-    }
+    Percent,
+    Factorial
 }

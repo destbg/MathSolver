@@ -1,11 +1,10 @@
-﻿namespace MathSolver.Enums
+﻿namespace MathSolver.Enums;
+
+public enum MathSymbol
 {
-    public enum MathSymbol
-    {
-        Addition,
-        Subraction,
-        Multiplication,
-        Division,
-        Power
-    }
+    Addition,
+    Subraction,
+    Multiplication,
+    Division,
+    Power
 }
